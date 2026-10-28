@@ -118,8 +118,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // 1. Real Google Login via Firebase Popup
   const loginWithGoogle = async () => {
     if (!isFirebaseConfigured) {
+      const isVercelOrRemote = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+      if (isVercelOrRemote) {
+        throw new Error(
+          'Firebase не налаштовано на Vercel! Додайте змінні NEXT_PUBLIC_FIREBASE_* у Vercel Dashboard ➔ Settings ➔ Environment Variables і зробіть Redeploy.'
+        );
+      }
       throw new Error(
-        'Firebase ще не налаштовано. Будь ласка, створіть файл .env.local із параметрами вашого проєкту Firebase (див. .env.example).'
+        'Firebase ще не налаштовано локально. Створіть файл .env.local із параметрами вашого проєкту Firebase (див. .env.example).'
       );
     }
 
@@ -154,8 +160,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (err.code === 'auth/popup-closed-by-user') {
         throw new Error('Вікно входу Google було закрите до завершення авторизації.');
       } else if (err.code === 'auth/unauthorized-domain') {
+        const currentDomain = typeof window !== 'undefined' ? window.location.hostname : 'цей домен';
         throw new Error(
-          'Домен не авторизовано у Firebase Console. Додайте localhost (або ваш домен) у Firebase -> Authentication -> Settings -> Authorized Domains.'
+          `Домен "${currentDomain}" не авторизовано у Firebase Console! Додайте "${currentDomain}" у Firebase ➔ Authentication ➔ Settings ➔ Authorized Domains.`
         );
       } else if (err.code === 'auth/cancelled-popup-request') {
         throw new Error('Попередній запит було скасовано.');
