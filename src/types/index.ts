@@ -66,3 +66,40 @@ export interface PlaygroundExample {
   swiftCode: string;
   interactiveType: 'counter' | 'profile' | 'todo' | 'weather' | 'tipcalc' | 'biometric';
 }
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  provider: 'google' | 'email';
+  isVerified: boolean;
+  verifiedAt?: string;
+  joinedAt: string;
+  role: string;
+  bio?: string;
+  githubUrl?: string;
+  goal?: string;
+  verificationCode?: string;
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  unlocked: boolean;
+  unlockedAt?: string;
+  xpReward: number;
+}
+
+export interface CertificateData {
+  certificateId: string;
+  recipientName: string;
+  issueDate: string;
+  courseTitle: string;
+  verificationCode: string;
+  skills: string[];
+}
+
+

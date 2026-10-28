@@ -49,6 +49,16 @@ export default function Footer() {
                   Шпаргалка розробника
                 </Link>
               </li>
+              <li>
+                <Link href="/profile" className="text-ios-blue hover:underline transition-colors font-medium">
+                  Особистий кабінет студента
+                </Link>
+              </li>
+              <li>
+                <Link href="/profile?tab=certificate" className="hover:text-yellow-400 transition-colors">
+                  Офіційний сертифікат
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -138,3 +148,4 @@ export default function Footer() {
     </footer>
   );
 }
+

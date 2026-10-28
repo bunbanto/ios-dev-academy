@@ -65,3 +65,4 @@ export function toggleBookmark(lessonId: string): boolean {
   saveUserProgress(current);
   return isBookmarked;
 }
+

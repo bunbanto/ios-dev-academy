@@ -217,3 +217,4 @@ struct BiometricAuthView: View {
 }`
   }
 ];
+

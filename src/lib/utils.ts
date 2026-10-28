@@ -10,3 +10,4 @@ export function formatTime(seconds: number): string {
   const secs = seconds % 60;
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
+

@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { AuthProvider } from '@/context/AuthContext';
+import AuthModal from '@/components/AuthModal';
 
 export const metadata: Metadata = {
   title: 'SwiftLab — Навчання розробки додатків для iPhone (Swift & SwiftUI)',
@@ -38,11 +40,14 @@ export default function RootLayout({
   return (
     <html lang="uk" className="dark">
       <body className="min-h-screen flex flex-col bg-[#090a0f] text-neutral-100 antialiased selection:bg-ios-blue selection:text-white">
-        <Navbar />
-        <main className="flex-1">
-          {children}
-        </main>
-        <Footer />
+        <AuthProvider>
+          <Navbar />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+          <AuthModal />
+        </AuthProvider>
       </body>
     </html>
   );

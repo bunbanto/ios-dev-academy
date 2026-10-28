@@ -523,3 +523,4 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
     </div>
   );
 }
+

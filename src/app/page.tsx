@@ -312,6 +312,42 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      {/* Personal Cabinet & Certification Banner */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="glass-panel p-8 sm:p-10 rounded-3xl border border-white/10 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-3 text-center md:text-left max-w-2xl">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Особистий кабінет & Верифікація</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-black text-white">
+              Отримайте офіційний іменний сертифікат SwiftLab
+            </h3>
+            <p className="text-sm text-neutral-300 leading-relaxed">
+              Увійдіть через Google або Email, підтвердіть профіль, відстежуйте свій рівень XP та завантажуйте персональний сертифікат для резюме та LinkedIn.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            <Link
+              href="/profile"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-ios-blue to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold text-xs shadow-lg shadow-ios-blue/20 transition-all flex items-center justify-center gap-2"
+            >
+              <span>Відкрити кабінет</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link
+              href="/profile?tab=certificate"
+              className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-neutral-900 hover:bg-neutral-800 border border-white/10 text-neutral-300 hover:text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2"
+            >
+              <Award className="w-4 h-4 text-yellow-400" />
+              <span>Зразок сертифіката</span>
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
+
