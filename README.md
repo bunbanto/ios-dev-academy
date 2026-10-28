@@ -1,0 +1,79 @@
+# SwiftLab — Платформа для навчання розробки додатків для iPhone (iOS / Swift 6 / SwiftUI)
+
+**SwiftLab** — це сучасний інтерактивний веб-додаток на базі **Next.js (App Router)** та **Tailwind CSS**, створений для ефективного навчання створення мобільних додатків під iPhone, iPad та всю екосистему Apple.
+
+---
+
+## 🌟 Ключові можливості
+
+1. **Інтерактивний iPhone 16 Pro Симулятор**:
+   - Реалістичний титановий корпус з Dynamic Island, системними кнопками та статус-баром iOS.
+   - Живе перемикання компонентів: Лічильник кави (@State & Animation), Картка розробника (ZStack & Glassmorphism), Список завдань (List & Toggle), Калькулятор чайових (Slider & Binding), Face ID біометрія.
+   - Миттєвий перегляд та копіювання коду SwiftUI для вставки в Xcode.
+
+2. **Повна навчальна програма (Roadmap)**:
+   - 7 структурованих модулів: від базових змінних, опціоналів та колекцій до архітектури MVVM, async/await мережі та SwiftData.
+   - Детальна теорія, аналіз типових помилок початківців та інтерактивні челенджі з підказками.
+
+3. **Тренажер співбесід (Quiz & Challenges)**:
+   - Питання з реальних технічних інтерв'ю на посади Junior/Middle iOS Developer.
+   - Розбір Struct vs Class, ARC та витоків пам'яті `[weak self]`, SwiftUI State Management та Concurrency.
+   - Підрахунок балів, нарахування XP та анімація конфетті.
+
+4. **Шпаргалка розробника (Cheatsheet)**:
+   - Швидкий пошук та копіювання синтаксису Swift, корисних модифікаторів SwiftUI та прикладів використання.
+
+5. **Портфоліо-проєкти (Projects)**:
+   - Покрокові гайди зі створення реальних проєктів для резюме (HabitPulse на SwiftData, CryptoLive з CoinGecko REST API).
+
+---
+
+## 🚀 Швидкий старт локально
+
+```bash
+# Перейдіть у папку проєкту
+cd ios-dev-academy
+
+# Встановіть залежності (якщо ще не встановлені)
+npm install
+
+# Запустіть сервер розробки
+npm run dev
+```
+
+Відкрийте [http://localhost:3000](http://localhost:3000) у вашому браузері.
+
+---
+
+## 🚢 Деплой на Vercel (1 клік)
+
+Проєкт на 100% сумісний із Vercel:
+
+1. **Ініціалізація Git та пуш у GitHub**:
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit of SwiftLab iOS Academy"
+   git branch -M main
+   git remote add origin <your-github-repo-url>
+   git push -u origin main
+   ```
+
+2. **Розгортання на Vercel**:
+   - Перейдіть на [vercel.com](https://vercel.com)
+   - Натисніть **"Add New Project"**
+   - Імпортуйте репозиторій `ios-dev-academy`
+   - Vercel автоматично виявить фреймворк **Next.js**
+   - Натисніть **"Deploy"**!
+
+Жодних спеціальних змінних оточення чи баз даних не потрібно — додаток працює автономно з клієнтським сховищем LocalStorage для збереження прогресу.
+
+---
+
+## 🛠 Технічний стек
+
+- **Next.js 14** (App Router, React Server Components)
+- **TypeScript** (сувора типізація)
+- **Tailwind CSS** (фірмова палітра iOS System Colors, скляний неоморфізм)
+- **Lucide React** (набір іконок)
+- **Canvas-Confetti** (святкові ефекти при проходженні тестів та уроків)
