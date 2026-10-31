@@ -1,4 +1,6 @@
 'use client';
+import { useLocale } from '@/i18n/LocaleContext';
+import { t } from '@/i18n/ui';
 
 import React, { useState } from 'react';
 import { Check, Copy, Terminal } from 'lucide-react';
@@ -10,6 +12,7 @@ interface CodeBlockProps {
 }
 
 export default function CodeBlock({ code, language = 'swift', filename }: CodeBlockProps) {
+  const { locale } = useLocale();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -47,12 +50,12 @@ export default function CodeBlock({ code, language = 'swift', filename }: CodeBl
           {copied ? (
             <>
               <Check className="w-3.5 h-3.5 text-green-400" />
-              <span className="text-green-400">Скопійовано!</span>
+              <span className="text-green-400">{t("Скопійовано!", locale)}</span>
             </>
           ) : (
             <>
               <Copy className="w-3.5 h-3.5" />
-              <span>Копіювати</span>
+              <span>{t("Копіювати", locale)}</span>
             </>
           )}
         </button>

@@ -1,4 +1,6 @@
 'use client';
+import { useLocale } from '@/i18n/LocaleContext';
+import { t } from '@/i18n/ui';
 
 import React, { useState } from 'react';
 import {
@@ -25,6 +27,7 @@ interface IPhoneMockupProps {
 }
 
 export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMockupProps) {
+  const { locale } = useLocale();
   // Island expansion
   const [islandExpanded, setIslandExpanded] = useState(false);
 
@@ -167,10 +170,10 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
 
                 <div>
                   <h3 className="text-2xl font-bold text-white tracking-tight">
-                    {cups} {cups === 1 ? 'Чашка кави' : cups >= 2 && cups <= 4 ? 'Чашки кави' : 'Чашок кави'}
+                    {cups} {cups === 1 ? t("Чашка кави", locale) : cups >= 2 && cups <= 4 ? t("Чашки кави", locale) : t("Чашок кави", locale)}
                   </h3>
                   <p className="text-xs text-neutral-400 mt-1">
-                    {isHot ? '🔥 Гаряче американо' : '❄️ Освіжаючий айс лате'}
+                    {isHot ? t("🔥 Гаряче американо", locale) : t("❄️ Освіжаючий айс лате", locale)}
                   </p>
                 </div>
 
@@ -179,13 +182,13 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
                     onClick={() => setCups(Math.max(0, cups - 1))}
                     className="flex-1 py-2.5 rounded-xl bg-neutral-800 text-white font-semibold text-sm hover:bg-neutral-700 active:scale-95 transition-all"
                   >
-                    - Менше
+                    {t("- Менше", locale)}
                   </button>
                   <button
                     onClick={() => setCups(cups + 1)}
                     className="flex-1 py-2.5 rounded-xl bg-orange-500 text-white font-semibold text-sm hover:bg-orange-600 active:scale-95 shadow-lg shadow-orange-500/30 transition-all"
                   >
-                    + Ще одну!
+                    {t("+ Ще одну!", locale)}
                   </button>
                 </div>
 
@@ -194,7 +197,7 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
                     onClick={() => setIsHot(!isHot)}
                     className="w-full py-2 rounded-xl bg-neutral-900 border border-white/10 text-xs text-neutral-300 hover:text-white transition-all flex items-center justify-center gap-2"
                   >
-                    <span>Перемкнути: {isHot ? 'Зробити з льодом' : 'Зробити гарячою'}</span>
+                    <span>{t("Перемкнути:", locale)} {isHot ? t("Зробити з льодом", locale) : t("Зробити гарячою", locale)}</span>
                   </button>
                 </div>
               </div>
@@ -217,7 +220,7 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
                       iOS
                     </div>
                     <div>
-                      <h4 className="text-white font-bold text-base">Олег Мельник</h4>
+                      <h4 className="text-white font-bold text-base">{t("Олег Мельник", locale)}</h4>
                       <p className="text-white/80 text-xs">Junior iOS Developer</p>
                       <span className="inline-block mt-1 px-2 py-0.5 bg-black/30 backdrop-blur text-white text-[10px] rounded-full font-medium">
                         SwiftUI & SwiftData
@@ -228,15 +231,15 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
                   <div className="mt-5 grid grid-cols-3 gap-2 text-center text-white bg-black/25 backdrop-blur-md p-3 rounded-2xl border border-white/10">
                     <div>
                       <span className="block text-sm font-bold">14</span>
-                      <span className="text-[10px] text-white/70">Уроків</span>
+                      <span className="text-[10px] text-white/70">{t("Уроків", locale)}</span>
                     </div>
                     <div>
                       <span className="block text-sm font-bold">4</span>
-                      <span className="text-[10px] text-white/70">Проєкти</span>
+                      <span className="text-[10px] text-white/70">{t("Проєкти", locale)}</span>
                     </div>
                     <div>
                       <span className="block text-sm font-bold">4.9 ★</span>
-                      <span className="text-[10px] text-white/70">Рейтинг</span>
+                      <span className="text-[10px] text-white/70">{t("Рейтинг", locale)}</span>
                     </div>
                   </div>
 
@@ -255,13 +258,13 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
                     </button>
                     <button className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur text-white text-xs">
                       <Share2 className="w-3.5 h-3.5" />
-                      <span>Поділитися</span>
+                      <span>{t("Поділитися", locale)}</span>
                     </button>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <span className="text-xs text-neutral-400 block font-medium">Тема картки:</span>
+                  <span className="text-xs text-neutral-400 block font-medium">{t("Тема картки:", locale)}</span>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setActiveTheme('indigo')}
@@ -303,9 +306,9 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
               <div className="flex-1 flex flex-col justify-between space-y-3">
                 <div>
                   <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                    <h3 className="text-base font-bold text-white">Список справ</h3>
+                    <h3 className="text-base font-bold text-white">{t("Список справ", locale)}</h3>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-ios-blue/20 text-ios-blue font-semibold">
-                      {tasks.filter((t) => t.done).length}/{tasks.length} готово
+                      {tasks.filter((t) => t.done).length}/{tasks.length} {t("готово", locale)}
                     </span>
                   </div>
 
@@ -329,7 +332,7 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
                             <Circle className="w-4 h-4 text-neutral-400 flex-shrink-0" />
                           )}
                           <span className={`text-xs ${task.done ? 'line-through' : 'font-medium'}`}>
-                            {task.title}
+                            {t(task.title, locale)}
                           </span>
                         </button>
                         <button
@@ -348,7 +351,7 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
                     type="text"
                     value={newTaskInput}
                     onChange={(e) => setNewTaskInput(e.target.value)}
-                    placeholder="Додати нове завдання..."
+                    placeholder={t("Додати нове завдання...", locale)}
                     className="flex-1 bg-neutral-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-ios-blue"
                   />
                   <button
@@ -366,20 +369,20 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
               <div className="flex-1 flex flex-col justify-center space-y-6">
                 <div className="text-center">
                   <span className="text-[11px] uppercase tracking-wider text-emerald-400 font-bold">
-                    Калькулятор Рахунку
+                    {t("Калькулятор Рахунку", locale)}
                   </span>
                   <h3 className="text-3xl font-black text-white mt-1">
                     ${totalBill.toFixed(2)}
                   </h3>
                   <p className="text-xs text-neutral-400">
-                    Рахунок: ${bill} + Чайові: ${tipAmount.toFixed(2)} ({tipPercent}%)
+                    {t("Рахунок: $", locale)}{bill} {t("+ Чайові: $", locale)}{tipAmount.toFixed(2)} ({tipPercent}%)
                   </p>
                 </div>
 
                 <div className="space-y-4 bg-neutral-900/90 p-4 rounded-2xl border border-white/10">
                   <div>
                     <div className="flex justify-between text-xs text-neutral-300 font-medium mb-1.5">
-                      <span>Сума чеку</span>
+                      <span>{t("Сума чеку", locale)}</span>
                       <span className="text-white font-bold">${bill}</span>
                     </div>
                     <input
@@ -395,7 +398,7 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
 
                   <div>
                     <div className="flex justify-between text-xs text-neutral-300 font-medium mb-1.5">
-                      <span>Відсоток чайових</span>
+                      <span>{t("Відсоток чайових", locale)}</span>
                       <span className="text-emerald-400 font-bold">{tipPercent}%</span>
                     </div>
                     <input
@@ -453,12 +456,12 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
 
                 <div>
                   <h3 className="text-xl font-bold text-white">
-                    {isUnlocked ? 'Вхід Підтверджено!' : isScanning ? 'Сканування Face ID...' : 'Додаток Заблоковано'}
+                    {isUnlocked ? t("Вхід Підтверджено!", locale) : isScanning ? t("Сканування Face ID...", locale) : t("Додаток Заблоковано", locale)}
                   </h3>
                   <p className="text-xs text-neutral-400 mt-1 max-w-[200px] mx-auto">
                     {isUnlocked
-                      ? 'Біометричний токен отримано через LocalAuthentication.'
-                      : 'Натисніть кнопку нижче, щоб перевірити Face ID.'}
+                      ? t("Біометричний токен отримано через LocalAuthentication.", locale)
+                      : t("Натисніть кнопку нижче, щоб перевірити Face ID.", locale)}
                   </p>
                 </div>
 
@@ -471,7 +474,7 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
                       : 'bg-ios-blue text-white hover:bg-blue-600 shadow-ios-blue/30'
                   }`}
                 >
-                  {isScanning ? 'Обробка...' : isUnlocked ? 'Заблокувати знову' : 'Сканувати через Face ID'}
+                  {isScanning ? t("Обробка...", locale) : isUnlocked ? t("Заблокувати знову", locale) : t("Сканувати через Face ID", locale)}
                 </button>
               </div>
             )}
@@ -482,32 +485,32 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
                 <div className="bg-gradient-to-b from-blue-600 to-sky-400 p-5 rounded-3xl text-white shadow-xl">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="font-bold text-lg">Київ</h4>
-                      <p className="text-xs text-blue-100">Переважно сонячно</p>
+                      <h4 className="font-bold text-lg">{t("Київ", locale)}</h4>
+                      <p className="text-xs text-blue-100">{t("Переважно сонячно", locale)}</p>
                     </div>
                     <span className="text-4xl">☀️</span>
                   </div>
                   <div className="mt-4">
                     <span className="text-5xl font-light">22°</span>
                     <div className="flex gap-2 text-xs text-blue-100 mt-1">
-                      <span>Мін: 14°</span>
-                      <span>Макс: 24°</span>
+                      <span>{t("Мін: 14°", locale)}</span>
+                      <span>{t("Макс: 24°", locale)}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-neutral-900 p-3 rounded-2xl border border-white/10 space-y-2 text-xs">
                   <div className="flex justify-between text-neutral-400">
-                    <span>Вологість</span>
+                    <span>{t("Вологість", locale)}</span>
                     <span className="text-white font-semibold">48%</span>
                   </div>
                   <div className="flex justify-between text-neutral-400">
-                    <span>Швидкість вітру</span>
-                    <span className="text-white font-semibold">4.2 м/с</span>
+                    <span>{t("Швидкість вітру", locale)}</span>
+                    <span className="text-white font-semibold">{t("4.2 м/с", locale)}</span>
                   </div>
                   <div className="flex justify-between text-neutral-400">
-                    <span>УФ-індекс</span>
-                    <span className="text-white font-semibold">3 (Помірний)</span>
+                    <span>{t("УФ-індекс", locale)}</span>
+                    <span className="text-white font-semibold">{t("3 (Помірний)", locale)}</span>
                   </div>
                 </div>
               </div>

@@ -1,4 +1,5 @@
 'use client';
+import { t } from '@/i18n/ui';
 
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
@@ -7,6 +8,8 @@ import { useAuth } from '@/context/AuthContext';
 import { getUserProgress, UserProgress } from '@/lib/storage';
 import { LESSONS } from '@/data/lessons/index';
 import { computeAchievements } from '@/data/achievements';
+import { useLocale } from '@/i18n/LocaleContext';
+import { localizeContent } from '@/i18n/content';
 import {
   User,
   ShieldCheck,
@@ -37,6 +40,8 @@ import {
 import confetti from 'canvas-confetti';
 
 function ProfileContent() {
+  const { locale } = useLocale();
+  const lessons = localizeContent(LESSONS, locale);
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') || 'progress';
 
@@ -70,11 +75,11 @@ function ProfileContent() {
   useEffect(() => {
     if (user) {
       setEditName(user.name || '');
-      setEditBio(user.bio || '');
+      setEditBio(user.bio ? t(user.bio, locale) : '');
       setEditGoal(user.goal || 'junior_job');
       setEditGithub(user.githubUrl || '');
     }
-  }, [user]);
+  }, [user, locale]);
 
   // If user is not logged in, show sleek login gateway
   if (!user) {
@@ -88,10 +93,10 @@ function ProfileContent() {
 
         <div className="space-y-3 max-w-xl mx-auto">
           <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-            Особистий Кабінет Студента
+            {t("Особистий Кабінет Студента", locale)}
           </h1>
           <p className="text-sm text-neutral-400 leading-relaxed">
-            Увійдіть за допомогою облікового запису Google або Email, щоб зберігати свій прогрес, відстежувати статистику навчання, проходити верифікацію та отримати іменний сертифікат розробника.
+            {t("Увійдіть за допомогою облікового запису Google або Email, щоб зберігати свій прогрес, відстежувати статистику навчання, проходити верифікацію та отримати іменний сертифікат розробника.", locale)}
           </p>
         </div>
 
@@ -118,14 +123,14 @@ function ProfileContent() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
               />
             </svg>
-            <span>Увійти через Google</span>
+            <span>{t("Увійти через Google", locale)}</span>
           </button>
 
           <button
             onClick={() => openAuthModal('signup')}
             className="w-full py-3.5 px-6 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-sm border border-white/10 transition-colors"
           >
-            Увійти з Email
+            {t("Увійти з Email", locale)}
           </button>
         </div>
 
@@ -133,25 +138,25 @@ function ProfileContent() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto pt-6 text-left">
           <div className="glass-panel p-4 rounded-2xl border border-white/5 space-y-2">
             <ShieldCheck className="w-5 h-5 text-emerald-400" />
-            <h4 className="text-xs font-bold text-white">Верифікація облікового запису</h4>
+            <h4 className="text-xs font-bold text-white">{t("Верифікація облікового запису", locale)}</h4>
             <p className="text-[11px] text-neutral-400">
-              Підтверджена персональна сторінка розробника та підтверджений статус студента.
+              {t("Підтверджена персональна сторінка розробника та підтверджений статус студента.", locale)}
             </p>
           </div>
 
           <div className="glass-panel p-4 rounded-2xl border border-white/5 space-y-2">
             <Award className="w-5 h-5 text-yellow-400" />
-            <h4 className="text-xs font-bold text-white">Офіційний Сертифікат</h4>
+            <h4 className="text-xs font-bold text-white">{t("Офіційний Сертифікат", locale)}</h4>
             <p className="text-[11px] text-neutral-400">
-              Генерація іменного сертифіката з QR-кодом для додавання в резюме та LinkedIn.
+              {t("Генерація іменного сертифіката з QR-кодом для додавання в резюме та LinkedIn.", locale)}
             </p>
           </div>
 
           <div className="glass-panel p-4 rounded-2xl border border-white/5 space-y-2">
             <Zap className="w-5 h-5 text-ios-blue" />
-            <h4 className="text-xs font-bold text-white">Хмарна синхронізація</h4>
+            <h4 className="text-xs font-bold text-white">{t("Хмарна синхронізація", locale)}</h4>
             <p className="text-[11px] text-neutral-400">
-              Ваші бали XP, стрік днів та прогрес уроків надійно зберігаються між пристроями.
+              {t("Ваші бали XP, стрік днів та прогрес уроків надійно зберігаються між пристроями.", locale)}
             </p>
           </div>
         </div>
@@ -161,7 +166,7 @@ function ProfileContent() {
 
   // Calculations
   const completedIds = progress?.completedLessons || [];
-  const totalLessons = LESSONS.length;
+  const totalLessons = lessons.length;
   const completedCount = completedIds.length;
   const progressPercent = Math.round((completedCount / totalLessons) * 100);
   const totalXp = progress?.totalXp ?? 50;
@@ -185,7 +190,7 @@ function ProfileContent() {
   }
 
   const levelProgressPercent = Math.min(100, Math.round((totalXp / nextLevelXp) * 100));
-  const achievements = computeAchievements(progress || { completedLessons: [], quizScores: {}, totalXp: 50, streakDays: 1, lastActiveDate: '', bookmarks: [], currentModule: 1 }, user.isVerified);
+  const achievements = localizeContent(computeAchievements(progress || { completedLessons: [], quizScores: {}, totalXp: 50, streakDays: 1, lastActiveDate: '', bookmarks: [], currentModule: 1 }, user.isVerified), locale);
   const unlockedAchievementsCount = achievements.filter((a) => a.unlocked).length;
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -234,7 +239,7 @@ function ProfileContent() {
               {user.isVerified && (
                 <div
                   className="absolute -bottom-2 -right-2 p-1.5 rounded-full bg-emerald-500 text-white shadow-lg border-2 border-[#121622]"
-                  title="Верифікований акаунт"
+                  title={t("Верифікований акаунт", locale)}
                 >
                   <ShieldCheck className="w-4 h-4" />
                 </div>
@@ -251,7 +256,7 @@ function ProfileContent() {
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-semibold">
                     <ShieldCheck className="w-3.5 h-3.5" />
                     <span>
-                      {user.provider === 'google' ? 'Google Верифікація' : 'Email Верифіковано'}
+                      {user.provider === 'google' ? t("Google Верифікація", locale) : t("Email Верифіковано", locale)}
                     </span>
                   </span>
                 ) : (
@@ -260,7 +265,7 @@ function ProfileContent() {
                     className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30 transition-all text-xs font-semibold animate-pulse"
                   >
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    <span>Пройти верифікацію (+50 XP)</span>
+                    <span>{t("Пройти верифікацію (+50 XP)", locale)}</span>
                   </button>
                 )}
               </div>
@@ -268,14 +273,14 @@ function ProfileContent() {
               <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-400">
                 <span>{user.email}</span>
                 <span>•</span>
-                <span className="text-ios-blue font-semibold">{rankTitle}</span>
+                <span className="text-ios-blue font-semibold">{t(rankTitle, locale)}</span>
                 <span>•</span>
-                <span>На платформі з {user.joinedAt}</span>
+                <span>{t("На платформі з", locale)} {user.joinedAt}</span>
               </div>
 
               {user.bio && (
                 <p className="text-xs text-neutral-300 max-w-xl pt-1 leading-relaxed">
-                  {user.bio}
+                  {t(user.bio, locale)}
                 </p>
               )}
             </div>
@@ -288,13 +293,13 @@ function ProfileContent() {
               className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-200 hover:text-white text-xs font-semibold transition-colors flex items-center gap-2"
             >
               <Edit3 className="w-3.5 h-3.5" />
-              <span>{isEditing ? 'Скасувати' : 'Редагувати'}</span>
+              <span>{isEditing ? t("Скасувати", locale) : t("Редагувати", locale)}</span>
             </button>
 
             <button
               onClick={logout}
               className="p-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 transition-colors"
-              title="Вийти з акаунту"
+              title={t("Вийти з акаунту", locale)}
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -308,7 +313,7 @@ function ProfileContent() {
             className="mt-6 pt-6 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fadeIn"
           >
             <div className="space-y-1">
-              <label className="text-xs text-neutral-400">Імʼя та прізвище</label>
+              <label className="text-xs text-neutral-400">{t("Імʼя та прізвище", locale)}</label>
               <input
                 type="text"
                 value={editName}
@@ -318,7 +323,7 @@ function ProfileContent() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-neutral-400">GitHub профіль</label>
+              <label className="text-xs text-neutral-400">{t("GitHub профіль", locale)}</label>
               <input
                 type="url"
                 value={editGithub}
@@ -329,7 +334,7 @@ function ProfileContent() {
             </div>
 
             <div className="sm:col-span-2 space-y-1">
-              <label className="text-xs text-neutral-400">Про себе / Біографія</label>
+              <label className="text-xs text-neutral-400">{t("Про себе / Біографія", locale)}</label>
               <textarea
                 rows={2}
                 value={editBio}
@@ -344,7 +349,7 @@ function ProfileContent() {
                 className="px-4 py-2 rounded-xl bg-ios-blue hover:bg-blue-600 text-white text-xs font-semibold flex items-center gap-2 shadow"
               >
                 <Save className="w-3.5 h-3.5" />
-                <span>Зберегти зміни</span>
+                <span>{t("Зберегти зміни", locale)}</span>
               </button>
             </div>
           </form>
@@ -357,10 +362,10 @@ function ProfileContent() {
               <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
               <div>
                 <p className="text-xs font-bold text-amber-300">
-                  Акаунт не верифіковано!
+                  {t("Акаунт не верифіковано!", locale)}
                 </p>
                 <p className="text-[11px] text-neutral-300">
-                  Пройдіть швидку верифікацію (введіть 6-значний код підтвердження), щоб отримати право на офіційний сертифікат та бонусні +50 XP.
+                  {t("Пройдіть швидку верифікацію (введіть 6-значний код підтвердження), щоб отримати право на офіційний сертифікат та бонусні +50 XP.", locale)}
                 </p>
               </div>
             </div>
@@ -369,7 +374,7 @@ function ProfileContent() {
               onClick={() => openAuthModal('verify')}
               className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold text-xs whitespace-nowrap shadow-lg transition-transform hover:scale-105"
             >
-              Підтвердити зараз
+              {t("Підтвердити зараз", locale)}
             </button>
           </div>
         )}
@@ -380,7 +385,7 @@ function ProfileContent() {
         {/* Total XP & Level */}
         <div className="glass-card p-5 rounded-2xl border border-white/10 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-neutral-400">Рівень розробника</span>
+            <span className="text-xs font-semibold text-neutral-400">{t("Рівень розробника", locale)}</span>
             <div className="p-2 rounded-xl bg-yellow-500/10 text-yellow-400">
               <Zap className="w-4 h-4" />
             </div>
@@ -397,7 +402,7 @@ function ProfileContent() {
               />
             </div>
             <p className="text-[10px] text-neutral-500 mt-1">
-              До рівня {level + 1}: {nextLevelXp - totalXp > 0 ? nextLevelXp - totalXp : 0} XP
+              {t("До рівня", locale)} {level + 1}: {nextLevelXp - totalXp > 0 ? nextLevelXp - totalXp : 0} XP
             </p>
           </div>
         </div>
@@ -405,7 +410,7 @@ function ProfileContent() {
         {/* Lessons Completed */}
         <div className="glass-card p-5 rounded-2xl border border-white/10 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-neutral-400">Пройдено уроків</span>
+            <span className="text-xs font-semibold text-neutral-400">{t("Пройдено уроків", locale)}</span>
             <div className="p-2 rounded-xl bg-ios-blue/10 text-ios-blue">
               <BookOpen className="w-4 h-4" />
             </div>
@@ -423,14 +428,14 @@ function ProfileContent() {
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <p className="text-[10px] text-neutral-500 mt-1">7 модулів програми</p>
+            <p className="text-[10px] text-neutral-500 mt-1">{t("7 модулів програми", locale)}</p>
           </div>
         </div>
 
         {/* Streak */}
         <div className="glass-card p-5 rounded-2xl border border-white/10 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-neutral-400">Стрік навчання</span>
+            <span className="text-xs font-semibold text-neutral-400">{t("Стрік навчання", locale)}</span>
             <div className="p-2 rounded-xl bg-orange-500/10 text-orange-400">
               <Flame className="w-4 h-4 animate-pulse" />
             </div>
@@ -440,10 +445,10 @@ function ProfileContent() {
               <span className="text-2xl font-black text-white">
                 {progress?.streakDays ?? 1}
               </span>
-              <span className="text-xs font-semibold text-orange-400">дні(в) поспіль</span>
+              <span className="text-xs font-semibold text-orange-400">{t("дні(в) поспіль", locale)}</span>
             </div>
             <p className="text-[10px] text-neutral-400 mt-3">
-              Підтримуйте щоденний ритм для кращого засвоєння
+              {t("Підтримуйте щоденний ритм для кращого засвоєння", locale)}
             </p>
           </div>
         </div>
@@ -451,7 +456,7 @@ function ProfileContent() {
         {/* Achievements */}
         <div className="glass-card p-5 rounded-2xl border border-white/10 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-neutral-400">Досягнення</span>
+            <span className="text-xs font-semibold text-neutral-400">{t("Досягнення", locale)}</span>
             <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400">
               <Award className="w-4 h-4" />
             </div>
@@ -461,10 +466,10 @@ function ProfileContent() {
               <span className="text-2xl font-black text-white">
                 {unlockedAchievementsCount}/{achievements.length}
               </span>
-              <span className="text-xs font-semibold text-purple-400">відкрито</span>
+              <span className="text-xs font-semibold text-purple-400">{t("відкрито", locale)}</span>
             </div>
             <p className="text-[10px] text-neutral-400 mt-3">
-              Бейджі за практичні навички та квізи
+              {t("Бейджі за практичні навички та квізи", locale)}
             </p>
           </div>
         </div>
@@ -481,7 +486,7 @@ function ProfileContent() {
           }`}
         >
           <BookOpen className="w-4 h-4" />
-          <span>Мій прогрес ({progressPercent}%)</span>
+          <span>{t("Мій прогрес (", locale)}{progressPercent}%)</span>
         </button>
 
         <button
@@ -493,7 +498,7 @@ function ProfileContent() {
           }`}
         >
           <Award className="w-4 h-4" />
-          <span>Досягнення ({unlockedAchievementsCount})</span>
+          <span>{t("Досягнення (", locale)}{unlockedAchievementsCount})</span>
         </button>
 
         <button
@@ -505,7 +510,7 @@ function ProfileContent() {
           }`}
         >
           <FileCheck className="w-4 h-4" />
-          <span>Офіційний Сертифікат</span>
+          <span>{t("Офіційний Сертифікат", locale)}</span>
         </button>
       </div>
 
@@ -514,19 +519,19 @@ function ProfileContent() {
         <div className="space-y-6 animate-fadeIn">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-white tracking-tight">
-              Список тем та статус завершення
+              {t("Список тем та статус завершення", locale)}
             </h2>
             <Link
               href="/roadmap"
               className="text-xs font-semibold text-ios-blue hover:underline flex items-center gap-1"
             >
-              <span>Відкрити повну дорожню карту</span>
+              <span>{t("Відкрити повну дорожню карту", locale)}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {LESSONS.map((lesson) => {
+            {lessons.map((lesson) => {
               const isDone = completedIds.includes(lesson.id);
 
               return (
@@ -570,7 +575,7 @@ function ProfileContent() {
                         : 'bg-ios-blue hover:bg-blue-600 text-white shadow'
                     }`}
                   >
-                    {isDone ? 'Повторити' : 'Вчити'}
+                    {isDone ? t("Повторити", locale) : t("Вчити", locale)}
                   </Link>
                 </div>
               );
@@ -584,10 +589,10 @@ function ProfileContent() {
         <div className="space-y-6 animate-fadeIn">
           <div className="max-w-2xl space-y-1">
             <h2 className="text-lg font-bold text-white tracking-tight">
-              Ваші нагороди та досягнення
+              {t("Ваші нагороди та досягнення", locale)}
             </h2>
             <p className="text-xs text-neutral-400">
-              Виконуйте завдання, проходьте уроки та тестуйте знання на симуляторі для розблокування унікальних бейджів розробника.
+              {t("Виконуйте завдання, проходьте уроки та тестуйте знання на симуляторі для розблокування унікальних бейджів розробника.", locale)}
             </p>
           </div>
 
@@ -626,7 +631,7 @@ function ProfileContent() {
                           : 'bg-neutral-800 text-neutral-500'
                       }`}
                     >
-                      {ach.unlocked ? '✓ Розблоковано' : 'Заблоковано'}
+                      {ach.unlocked ? t("✓ Розблоковано", locale) : t("Заблоковано", locale)}
                     </span>
                   </div>
 
@@ -658,10 +663,10 @@ function ProfileContent() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <h2 className="text-lg font-bold text-white tracking-tight">
-                Іменний сертифікат проходження
+                {t("Іменний сертифікат проходження", locale)}
               </h2>
               <p className="text-xs text-neutral-400">
-                Офіційний сертифікат SwiftLab засвідчує опанування технологічного стеку iOS (Swift 6, SwiftUI, Concurrency, SwiftData).
+                {t("Офіційний сертифікат SwiftLab засвідчує опанування технологічного стеку iOS (Swift 6, SwiftUI, Concurrency, SwiftData).", locale)}
               </p>
             </div>
 
@@ -671,7 +676,7 @@ function ProfileContent() {
                 className="px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-white/10 text-xs font-semibold text-neutral-200 transition-colors flex items-center gap-2"
               >
                 <Share2 className="w-3.5 h-3.5" />
-                <span>{copiedLink ? 'Скопійовано!' : 'Поділитися'}</span>
+                <span>{copiedLink ? t("Скопійовано!", locale) : t("Поділитися", locale)}</span>
               </button>
 
               <button
@@ -679,7 +684,7 @@ function ProfileContent() {
                 className="px-4 py-2 rounded-xl bg-ios-blue hover:bg-blue-600 text-white text-xs font-semibold shadow-lg shadow-ios-blue/20 transition-all flex items-center gap-2"
               >
                 <Printer className="w-3.5 h-3.5" />
-                <span>Друк / Зберегти PDF</span>
+                <span>{t("Друк / Зберегти PDF", locale)}</span>
               </button>
             </div>
           </div>
@@ -699,7 +704,7 @@ function ProfileContent() {
                 <span>Official SwiftLab Academy Certification</span>
               </div>
               <h3 className="text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 tracking-tight">
-                СЕРТИФІКАТ РОЗРОБНИКА
+                {t("СЕРТИФІКАТ РОЗРОБНИКА", locale)}
               </h3>
               <p className="text-xs uppercase tracking-[0.3em] text-neutral-400">
                 iOS Application Development (Swift 6 & SwiftUI)
@@ -708,12 +713,12 @@ function ProfileContent() {
 
             {/* Recipient */}
             <div className="space-y-2 py-4">
-              <p className="text-xs text-neutral-400">Цим засвідчується, що</p>
+              <p className="text-xs text-neutral-400">{t("Цим засвідчується, що", locale)}</p>
               <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-wide border-b border-white/20 pb-2 inline-block px-8">
                 {user.name}
               </h2>
               <p className="text-xs text-neutral-300 max-w-lg mx-auto pt-2 leading-relaxed">
-                успішно пройшов програму підготовки розробника iOS додатків під iPhone та опанував роботу з сучасною мовою Swift 6, побудову UI на базі SwiftUI, асинхронні запити URLSession та сховище даних SwiftData.
+                {t("успішно пройшов програму підготовки розробника iOS додатків під iPhone та опанував роботу з сучасною мовою Swift 6, побудову UI на базі SwiftUI, асинхронні запити URLSession та сховище даних SwiftData.", locale)}
               </p>
             </div>
 
@@ -732,7 +737,7 @@ function ProfileContent() {
             {/* Footer Signatures & Stamp */}
             <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-neutral-400">
               <div className="text-left space-y-1">
-                <p className="text-[10px] text-neutral-500 uppercase tracking-wider">ID Сертифіката</p>
+                <p className="text-[10px] text-neutral-500 uppercase tracking-wider">{t("ID Сертифіката", locale)}</p>
                 <p className="font-mono text-white text-xs">
                   SL-{user.id.slice(-6).toUpperCase()}-2025
                 </p>
@@ -747,7 +752,7 @@ function ProfileContent() {
               </div>
 
               <div className="text-right space-y-1">
-                <p className="text-[10px] text-neutral-500 uppercase tracking-wider">Дата верифікації</p>
+                <p className="text-[10px] text-neutral-500 uppercase tracking-wider">{t("Дата верифікації", locale)}</p>
                 <p className="text-white text-xs">
                   {user.verifiedAt
                     ? new Date(user.verifiedAt).toLocaleDateString('uk-UA')
@@ -763,13 +768,14 @@ function ProfileContent() {
 }
 
 export default function ProfilePage() {
+  const { locale } = useLocale();
   return (
     <Suspense
       fallback={
         <div className="min-h-[60vh] flex items-center justify-center">
           <div className="flex items-center gap-3 text-neutral-400 text-sm">
             <Loader2 className="w-5 h-5 animate-spin text-ios-blue" />
-            <span>Завантаження особистого кабінету...</span>
+            <span>{t("Завантаження особистого кабінету...", locale)}</span>
           </div>
         </div>
       }

@@ -1,4 +1,5 @@
 'use client';
+import { t } from '@/i18n/ui';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -17,15 +18,19 @@ import confetti from 'canvas-confetti';
 import { QUIZ_QUESTIONS } from '@/data/quiz';
 import CodeBlock from '@/components/CodeBlock';
 import { getUserProgress, saveUserProgress } from '@/lib/storage';
+import { useLocale } from '@/i18n/LocaleContext';
+import { localizeContent } from '@/i18n/content';
 
 export default function QuizPage() {
+  const { locale } = useLocale();
+  const questions = localizeContent(QUIZ_QUESTIONS, locale);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
 
-  const currentQ = QUIZ_QUESTIONS[currentIndex];
+  const currentQ = questions[currentIndex];
 
   const handleSelectOption = (index: number) => {
     if (isAnswered) return;
@@ -38,7 +43,7 @@ export default function QuizPage() {
   };
 
   const handleNext = () => {
-    if (currentIndex < QUIZ_QUESTIONS.length - 1) {
+    if (currentIndex < questions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
       setSelectedOption(null);
       setIsAnswered(false);
@@ -70,7 +75,7 @@ export default function QuizPage() {
     setIsFinished(false);
   };
 
-  const progressPercent = Math.round(((currentIndex + 1) / QUIZ_QUESTIONS.length) * 100);
+  const progressPercent = Math.round(((currentIndex + 1) / questions.length) * 100);
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -78,13 +83,13 @@ export default function QuizPage() {
       <div className="space-y-2 text-center">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs font-semibold">
           <HelpCircle className="w-3.5 h-3.5" />
-          <span>Тренажер Співбесіди на iOS</span>
+          <span>{t("Тренажер Співбесіди на iOS", locale)}</span>
         </div>
         <h1 className="text-3xl font-black text-white tracking-tight">
-          Тестування знань Swift & SwiftUI
+          {t("Тестування знань Swift & SwiftUI", locale)}
         </h1>
         <p className="text-xs text-neutral-400">
-          Питання відбираються за стандартами технічних інтервʼю на рівні Junior/Middle iOS Developer.
+          {t("Питання відбираються за стандартами технічних інтервʼю на рівні Junior/Middle iOS Developer.", locale)}
         </p>
       </div>
 
@@ -94,9 +99,9 @@ export default function QuizPage() {
           <div className="space-y-2">
             <div className="flex justify-between text-xs text-neutral-400 font-medium">
               <span>
-                Питання {currentIndex + 1} з {QUIZ_QUESTIONS.length}
+                {locale === 'en' ? `Question ${currentIndex + 1} of ${questions.length}` : `Питання ${currentIndex + 1} з ${questions.length}`}
               </span>
-              <span>Правильно: {score}</span>
+              <span>{t("Правильно:", locale)} {score}</span>
             </div>
             <div className="w-full bg-neutral-900 h-2 rounded-full overflow-hidden border border-white/5">
               <div
@@ -113,7 +118,7 @@ export default function QuizPage() {
                 {currentQ.category}
               </span>
               <span className="text-[11px] text-neutral-500 capitalize">
-                Рівень: {currentQ.difficulty}
+                {t("Рівень:", locale)} {currentQ.difficulty}
               </span>
             </div>
 
@@ -181,7 +186,7 @@ export default function QuizPage() {
               >
                 <div className="font-bold flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
-                  <span>Пояснення:</span>
+                  <span>{t("Пояснення:", locale)}</span>
                 </div>
                 <p>{currentQ.explanation}</p>
               </div>
@@ -194,7 +199,7 @@ export default function QuizPage() {
                 className="w-full py-3.5 rounded-2xl bg-ios-blue hover:bg-blue-600 text-white font-semibold text-xs transition-all shadow-lg shadow-ios-blue/20 flex items-center justify-center gap-2"
               >
                 <span>
-                  {currentIndex < QUIZ_QUESTIONS.length - 1 ? 'Наступне питання' : 'Завершити тест'}
+                  {currentIndex < questions.length - 1 ? (locale === 'en' ? 'Next question' : t("Наступне питання", locale)) : (locale === 'en' ? 'Finish quiz' : t("Завершити тест", locale))}
                 </span>
                 <ArrowRight className="w-4 h-4" />
               </button>
@@ -209,9 +214,9 @@ export default function QuizPage() {
           </div>
 
           <div>
-            <h2 className="text-2xl font-black text-white">Тест успішно завершено!</h2>
+            <h2 className="text-2xl font-black text-white">{t("Тест успішно завершено!", locale)}</h2>
             <p className="text-xs text-neutral-400 mt-1">
-              Ваш підсумковий результат за запитаннями:
+              {t("Ваш підсумковий результат за запитаннями:", locale)}
             </p>
           </div>
 
@@ -220,7 +225,7 @@ export default function QuizPage() {
               {score} / {QUIZ_QUESTIONS.length}
             </span>
             <span className="text-xs text-emerald-400 font-semibold block mt-1">
-              {Math.round((score / QUIZ_QUESTIONS.length) * 100)}% Правильних відповідей
+              {Math.round((score / questions.length) * 100)}% {locale === 'en' ? 'Correct answers' : t("Правильних відповідей", locale)}
             </span>
           </div>
 
@@ -230,7 +235,7 @@ export default function QuizPage() {
               className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-neutral-800 hover:bg-neutral-700 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all border border-white/10"
             >
               <RotateCcw className="w-4 h-4" />
-              <span>Пройти ще раз</span>
+              <span>{t("Пройти ще раз", locale)}</span>
             </button>
 
             <Link
@@ -238,7 +243,7 @@ export default function QuizPage() {
               className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-ios-blue hover:bg-blue-600 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-ios-blue/20"
             >
               <BookOpen className="w-4 h-4" />
-              <span>Повернутися до уроків</span>
+              <span>{t("Повернутися до уроків", locale)}</span>
             </Link>
           </div>
         </div>

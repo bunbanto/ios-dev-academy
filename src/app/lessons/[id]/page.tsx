@@ -1,4 +1,5 @@
 'use client';
+import { t } from '@/i18n/ui';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -30,11 +31,15 @@ import confetti from 'canvas-confetti';
 import { LESSONS } from '@/data/lessons/index';
 import CodeBlock from '@/components/CodeBlock';
 import { getUserProgress, markLessonCompleted, toggleBookmark, UserProgress } from '@/lib/storage';
+import { useLocale } from '@/i18n/LocaleContext';
+import { localizeContent } from '@/i18n/content';
 
 export default function LessonDetailPage() {
+  const { locale } = useLocale();
+  const lessons = localizeContent(LESSONS, locale);
   const params = useParams();
   const lessonId = params?.id as string;
-  const lessonIndex = LESSONS.findIndex((l) => l.id === lessonId);
+  const lessonIndex = lessons.findIndex((l) => l.id === lessonId);
 
   const [isCompleted, setIsCompleted] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -45,7 +50,7 @@ export default function LessonDetailPage() {
   // Checkpoints interactive state: map of checkpoint index -> selected option index
   const [checkpointAnswers, setCheckpointAnswers] = useState<Record<number, number>>({});
 
-  const lesson = LESSONS[lessonIndex];
+  const lesson = lessons[lessonIndex];
 
   useEffect(() => {
     if (lessonId) {
@@ -61,21 +66,21 @@ export default function LessonDetailPage() {
   if (!lesson) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-4">
-        <h1 className="text-2xl font-bold text-white">Урок не знайдено</h1>
-        <p className="text-neutral-400 text-sm">Цей урок не існує або був переміщений.</p>
+        <h1 className="text-2xl font-bold text-white">{t("Урок не знайдено", locale)}</h1>
+        <p className="text-neutral-400 text-sm">{t("Цей урок не існує або був переміщений.", locale)}</p>
         <Link
           href="/roadmap"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-ios-blue text-white text-xs font-semibold"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Повернутися до програми</span>
+          <span>{t("Повернутися до програми", locale)}</span>
         </Link>
       </div>
     );
   }
 
-  const prevLesson = lessonIndex > 0 ? LESSONS[lessonIndex - 1] : null;
-  const nextLesson = lessonIndex < LESSONS.length - 1 ? LESSONS[lessonIndex + 1] : null;
+  const prevLesson = lessonIndex > 0 ? lessons[lessonIndex - 1] : null;
+  const nextLesson = lessonIndex < lessons.length - 1 ? lessons[lessonIndex + 1] : null;
 
   const handleComplete = () => {
     markLessonCompleted(lesson.id, 25);
@@ -118,7 +123,7 @@ export default function LessonDetailPage() {
           className="inline-flex items-center gap-2 text-xs font-semibold text-neutral-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Назад до дорожньої карти</span>
+          <span>{t("Назад до дорожньої карти", locale)}</span>
         </Link>
 
         <div className="flex items-center gap-2">
@@ -129,10 +134,10 @@ export default function LessonDetailPage() {
                 ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
                 : 'bg-neutral-900 border-white/10 text-neutral-400 hover:text-white'
             }`}
-            title={isBookmarked ? 'В закладках' : 'Зберегти в закладки'}
+            title={isBookmarked ? t("В закладках", locale) : t("Зберегти в закладки", locale)}
           >
             <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? 'fill-amber-400' : ''}`} />
-            <span className="hidden sm:inline">{isBookmarked ? 'Збережено' : 'Зберегти'}</span>
+            <span className="hidden sm:inline">{isBookmarked ? t("Збережено", locale) : t("Зберегти", locale)}</span>
           </button>
         </div>
       </div>
@@ -146,14 +151,14 @@ export default function LessonDetailPage() {
           <span className="text-neutral-600">•</span>
           <span className="text-xs text-neutral-400 flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" />
-            {lesson.estimatedMinutes} хв
+            {lesson.estimatedMinutes} {t("хв", locale)}
           </span>
           <span className="text-neutral-600">•</span>
           <span
             className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${
-              lesson.difficulty === 'Початковий'
+              lesson.difficulty === t('Початковий', locale)
                 ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                : lesson.difficulty === 'Середній'
+                : lesson.difficulty === t('Середній', locale)
                 ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
                 : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
             }`}
@@ -175,7 +180,7 @@ export default function LessonDetailPage() {
         <div className="p-5 rounded-2xl bg-gradient-to-r from-ios-blue/15 via-blue-900/10 to-transparent border border-ios-blue/30 space-y-2">
           <div className="flex items-center gap-2 text-ios-blue text-xs font-bold tracking-wide uppercase">
             <Compass className="w-4 h-4" />
-            <span>Реальний контекст в iOS індустрії</span>
+            <span>{t("Реальний контекст в iOS індустрії", locale)}</span>
           </div>
           <p className="text-sm text-neutral-200 leading-relaxed font-normal">
             {lesson.content.realWorldContext}
@@ -188,7 +193,7 @@ export default function LessonDetailPage() {
         <div className="space-y-8">
           <div className="flex items-center gap-2 text-white">
             <Sparkles className="w-5 h-5 text-ios-blue" />
-            <h2 className="text-xl font-bold tracking-tight">Поглиблений теоретичний матеріал</h2>
+            <h2 className="text-xl font-bold tracking-tight">{t("Поглиблений теоретичний матеріал", locale)}</h2>
           </div>
 
           <div className="space-y-6">
@@ -224,7 +229,7 @@ export default function LessonDetailPage() {
                       {section.callout.type === 'tip' && <Lightbulb className="w-4 h-4 text-emerald-400" />}
                       {section.callout.type === 'warning' && <AlertTriangle className="w-4 h-4 text-amber-400" />}
                       {section.callout.type === 'info' && <Info className="w-4 h-4 text-blue-400" />}
-                      <span>{section.callout.title || (section.callout.type === 'tip' ? 'Порада від Senior iOS' : section.callout.type === 'warning' ? 'Важливе застереження' : 'Зверніть увагу')}</span>
+                      <span>{section.callout.title || (section.callout.type === 'tip' ? t("Порада від Senior iOS", locale) : section.callout.type === 'warning' ? t("Важливе застереження", locale) : t("Зверніть увагу", locale))}</span>
                     </div>
                     <p className="leading-relaxed text-neutral-200">{section.callout.text}</p>
                   </div>
@@ -238,7 +243,7 @@ export default function LessonDetailPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-ios-blue" />
-            <span>Теоретична частина</span>
+            <span>{t("Теоретична частина", locale)}</span>
           </h2>
           <div className="glass-panel p-6 rounded-2xl space-y-3 border border-white/10 text-neutral-300 text-sm leading-relaxed">
             {lesson.content.theory.map((para, i) => (
@@ -253,7 +258,7 @@ export default function LessonDetailPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <span>Практика коду: Як треба і як НЕ треба</span>
+              <span>{t("Практика коду: Як треба і як НЕ треба", locale)}</span>
             </h2>
 
             {/* Toggle Tabs */}
@@ -267,7 +272,7 @@ export default function LessonDetailPage() {
                 }`}
               >
                 <ThumbsUp className="w-3.5 h-3.5" />
-                <span>Ідіоматичний Swift</span>
+                <span>{t("Ідіоматичний Swift", locale)}</span>
               </button>
               <button
                 onClick={() => setComparisonTab('bad')}
@@ -278,7 +283,7 @@ export default function LessonDetailPage() {
                 }`}
               >
                 <ThumbsDown className="w-3.5 h-3.5" />
-                <span>Типова помилка</span>
+                <span>{t("Типова помилка", locale)}</span>
               </button>
             </div>
           </div>
@@ -286,7 +291,7 @@ export default function LessonDetailPage() {
           {comparisonTab === 'good' ? (
             <div className="space-y-2">
               <div className="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-500/30 text-xs text-emerald-300 font-medium">
-                ✅ <strong>Правильно ({lesson.content.comparisonSnippet.good.title}):</strong>{' '}
+                ✅ <strong>{t("Правильно (", locale)}{lesson.content.comparisonSnippet.good.title}):</strong>{' '}
                 {lesson.content.comparisonSnippet.good.explanation}
               </div>
               <CodeBlock
@@ -297,7 +302,7 @@ export default function LessonDetailPage() {
           ) : (
             <div className="space-y-2">
               <div className="p-3.5 rounded-xl bg-red-950/20 border border-red-500/30 text-xs text-red-300 font-medium">
-                ❌ <strong>Антипатерн ({lesson.content.comparisonSnippet.bad.title}):</strong>{' '}
+                ❌ <strong>{t("Антипатерн (", locale)}{lesson.content.comparisonSnippet.bad.title}):</strong>{' '}
                 {lesson.content.comparisonSnippet.bad.explanation}
               </div>
               <CodeBlock
@@ -313,9 +318,9 @@ export default function LessonDetailPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <span>Повний зразок коду на Swift</span>
+            <span>{t("Повний зразок коду на Swift", locale)}</span>
           </h2>
-          <span className="text-xs text-neutral-500">Готово для вставки в Xcode</span>
+          <span className="text-xs text-neutral-500">{t("Готово для вставки в Xcode", locale)}</span>
         </div>
 
         <CodeBlock code={lesson.content.codeSnippet} filename={`${lesson.id}.swift`} />
@@ -323,7 +328,7 @@ export default function LessonDetailPage() {
 
       {/* Step-by-Step Code Explanation */}
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-white">Як цей код працює крок за кроком</h2>
+        <h2 className="text-xl font-bold text-white">{t("Як цей код працює крок за кроком", locale)}</h2>
         <div className="space-y-2 text-sm text-neutral-300">
           {lesson.content.explanation.map((item, i) => (
             <div key={i} className="flex items-start gap-3 glass-card p-3.5 rounded-xl border border-white/5">
@@ -341,7 +346,7 @@ export default function LessonDetailPage() {
         <div className="glass-panel p-6 rounded-2xl border border-cyan-500/25 bg-gradient-to-br from-cyan-950/15 via-transparent to-transparent space-y-4">
           <div className="flex items-center gap-2.5 text-cyan-400 font-bold text-base">
             <Cpu className="w-5 h-5" />
-            <span>Під капотом: {lesson.content.underTheHood.title}</span>
+            <span>{t("Під капотом:", locale)} {lesson.content.underTheHood.title}</span>
           </div>
 
           <div className="space-y-2.5 text-xs text-neutral-300">
@@ -367,11 +372,11 @@ export default function LessonDetailPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-white">
               <HelpCircle className="w-5 h-5 text-purple-400" />
-              <h2 className="text-xl font-bold">Експрес-перевірка знань</h2>
+              <h2 className="text-xl font-bold">{t("Експрес-перевірка знань", locale)}</h2>
             </div>
             {answeredCheckpointsCount > 0 && (
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                Результат: {correctCheckpointsCount}/{totalCheckpoints} правильно
+                {t("Результат:", locale)} {correctCheckpointsCount}/{totalCheckpoints} {t("правильно", locale)}
               </span>
             )}
           </div>
@@ -439,7 +444,7 @@ export default function LessonDetailPage() {
                       }`}
                     >
                       <p className="font-semibold">
-                        {isCorrect ? '🎉 Чудово! Відповідь точна.' : '💡 Не зовсім так:'}
+                        {isCorrect ? t("🎉 Чудово! Відповідь точна.", locale) : t("💡 Не зовсім так:", locale)}
                       </p>
                       <p className="text-neutral-200">{cp.explanation}</p>
                     </div>
@@ -457,7 +462,7 @@ export default function LessonDetailPage() {
         <div className="glass-panel p-5 rounded-2xl border border-emerald-500/20 bg-emerald-950/10 space-y-3">
           <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4" />
-            <span>Головні висновки уроку</span>
+            <span>{t("Головні висновки уроку", locale)}</span>
           </h3>
           <ul className="space-y-2 text-xs text-neutral-300">
             {lesson.content.keyTakeaways.map((item, i) => (
@@ -474,7 +479,7 @@ export default function LessonDetailPage() {
           <div className="glass-panel p-5 rounded-2xl border border-amber-500/20 bg-amber-950/10 space-y-3">
             <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4" />
-              <span>Типові помилки початківців</span>
+              <span>{t("Типові помилки початківців", locale)}</span>
             </h3>
             <ul className="space-y-2 text-xs text-neutral-300">
               {lesson.content.commonMistakes.map((item, i) => (
@@ -493,11 +498,11 @@ export default function LessonDetailPage() {
         <div className="glass-panel p-6 rounded-2xl border border-ios-blue/40 bg-blue-950/10 space-y-4">
           <div className="flex items-center gap-2 text-ios-blue text-sm font-bold">
             <Laptop className="w-5 h-5" />
-            <span>Лабораторна робота в Xcode: {lesson.content.xcodeLab.task}</span>
+            <span>{t("Лабораторна робота в Xcode:", locale)} {lesson.content.xcodeLab.task}</span>
           </div>
 
           <div className="space-y-2 text-xs text-neutral-300">
-            <h4 className="font-semibold text-white">Покрокова інструкція:</h4>
+            <h4 className="font-semibold text-white">{t("Покрокова інструкція:", locale)}</h4>
             {lesson.content.xcodeLab.steps.map((st, sIdx) => (
               <div key={sIdx} className="flex items-start gap-2.5">
                 <span className="w-4 h-4 rounded-full bg-ios-blue/20 text-ios-blue font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -514,14 +519,14 @@ export default function LessonDetailPage() {
 
           {lesson.content.xcodeLab.expectedOutput && (
             <div className="p-3 bg-neutral-900 rounded-xl text-xs text-neutral-300 border border-white/5 font-mono">
-              <span className="text-neutral-500 block mb-1">Очікуваний вивід у консолі Xcode:</span>
+              <span className="text-neutral-500 block mb-1">{t("Очікуваний вивід у консолі Xcode:", locale)}</span>
               <span className="text-emerald-400">{lesson.content.xcodeLab.expectedOutput}</span>
             </div>
           )}
 
           {lesson.content.xcodeLab.tips && (
             <p className="text-xs text-neutral-400 italic">
-              💡 Порада: {lesson.content.xcodeLab.tips}
+              {t("💡 Порада:", locale)} {lesson.content.xcodeLab.tips}
             </p>
           )}
         </div>
@@ -532,7 +537,7 @@ export default function LessonDetailPage() {
         <div className="glass-panel p-6 rounded-2xl border border-ios-blue/30 space-y-4">
           <div className="flex items-center gap-2 text-ios-blue text-sm font-bold">
             <Lightbulb className="w-5 h-5" />
-            <span>Практичне мікро-завдання</span>
+            <span>{t("Практичне мікро-завдання", locale)}</span>
           </div>
 
           <p className="text-sm text-neutral-200 font-medium leading-relaxed">
@@ -544,19 +549,19 @@ export default function LessonDetailPage() {
               onClick={() => setShowHint(!showHint)}
               className="px-3.5 py-1.5 rounded-lg bg-neutral-800 text-neutral-300 hover:text-white text-xs font-medium border border-white/10 transition-colors"
             >
-              {showHint ? 'Сховати підказку' : 'Показати підказку'}
+              {showHint ? t("Сховати підказку", locale) : t("Показати підказку", locale)}
             </button>
             <button
               onClick={() => setShowSolution(!showSolution)}
               className="px-3.5 py-1.5 rounded-lg bg-ios-blue/20 text-ios-blue hover:bg-ios-blue/30 text-xs font-medium border border-ios-blue/30 transition-colors"
             >
-              {showSolution ? 'Сховати розвʼязок' : 'Показати розвʼязок'}
+              {showSolution ? t("Сховати розвʼязок", locale) : t("Показати розвʼязок", locale)}
             </button>
           </div>
 
           {showHint && (
             <div className="p-3.5 bg-neutral-900 rounded-xl text-xs text-neutral-300 border border-white/5">
-              💡 <strong>Підказка:</strong> {lesson.content.challenge.hint}
+              💡 <strong>{t("Підказка:", locale)}</strong> {lesson.content.challenge.hint}
             </div>
           )}
 
@@ -575,19 +580,19 @@ export default function LessonDetailPage() {
             {isCompleted ? (
               <>
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                <span>Урок успішно пройдено!</span>
+                <span>{t("Урок успішно пройдено!", locale)}</span>
               </>
             ) : (
               <>
                 <Flame className="w-5 h-5 text-orange-400" />
-                <span>Закінчили вивчення матеріалу?</span>
+                <span>{t("Закінчили вивчення матеріалу?", locale)}</span>
               </>
             )}
           </h4>
           <p className="text-xs text-neutral-400">
             {isCompleted
-              ? 'Ви заробили +25 XP за цей урок. Продовжуйте до наступної теми!'
-              : 'Натисніть кнопку нижче, щоб зафіксувати прогрес та отримати +25 XP.'}
+              ? t("Ви заробили +25 XP за цей урок. Продовжуйте до наступної теми!", locale)
+              : t("Натисніть кнопку нижче, щоб зафіксувати прогрес та отримати +25 XP.", locale)}
           </p>
         </div>
 
@@ -601,7 +606,7 @@ export default function LessonDetailPage() {
           }`}
         >
           <CheckCircle2 className="w-4 h-4" />
-          <span>{isCompleted ? 'Урок пройдено' : 'Відзначити як завершений (+25 XP)'}</span>
+          <span>{isCompleted ? t("Урок пройдено", locale) : t("Відзначити як завершений (+25 XP)", locale)}</span>
         </button>
       </div>
 
@@ -614,7 +619,7 @@ export default function LessonDetailPage() {
           >
             <ChevronLeft className="w-4 h-4 flex-shrink-0" />
             <div className="text-left truncate">
-              <span className="block text-[10px] text-neutral-500">Попередній урок</span>
+              <span className="block text-[10px] text-neutral-500">{t("Попередній урок", locale)}</span>
               <span className="font-semibold truncate block">
                 {prevLesson.title}
               </span>
@@ -630,7 +635,7 @@ export default function LessonDetailPage() {
             className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-ios-blue text-white hover:bg-blue-600 text-xs font-semibold transition-all shadow-lg shadow-ios-blue/20 max-w-[48%]"
           >
             <div className="text-right truncate">
-              <span className="block text-[10px] text-white/70">Наступний урок</span>
+              <span className="block text-[10px] text-white/70">{t("Наступний урок", locale)}</span>
               <span className="font-semibold truncate block">
                 {nextLesson.title}
               </span>
@@ -642,7 +647,7 @@ export default function LessonDetailPage() {
             href="/roadmap"
             className="flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all"
           >
-            <span>Всі уроки курсу пройдено!</span>
+            <span>{t("Всі уроки курсу пройдено!", locale)}</span>
             <Award className="w-4 h-4" />
           </Link>
         )}

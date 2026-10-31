@@ -1,4 +1,6 @@
 'use client';
+import { useLocale } from '@/i18n/LocaleContext';
+import { t } from '@/i18n/ui';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -21,9 +23,13 @@ import {
 import IPhoneMockup from '@/components/IPhoneMockup';
 import { LESSONS } from '@/data/lessons/index';
 import { QUIZ_QUESTIONS } from '@/data/quiz';
+import { localizeContent } from '@/i18n/content';
 import { getUserProgress, UserProgress } from '@/lib/storage';
 
 export default function HomePage() {
+  const { locale } = useLocale();
+  const lessons = localizeContent(LESSONS, locale);
+  const questions = localizeContent(QUIZ_QUESTIONS, locale);
   const [activeInteractiveMode, setActiveInteractiveMode] = useState<'counter' | 'profile' | 'todo' | 'biometric'>('counter');
   const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
 
@@ -31,7 +37,7 @@ export default function HomePage() {
     setUserProgress(getUserProgress());
   }, []);
 
-  const totalLessons = LESSONS.length;
+  const totalLessons = lessons.length;
   const completedCount = userProgress?.completedLessons.length || 0;
   const progressPercent = Math.round((completedCount / totalLessons) * 100);
 
@@ -48,19 +54,19 @@ export default function HomePage() {
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-ios-blue/10 border border-ios-blue/30 text-ios-blue text-xs font-semibold">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Оновлено під Swift 6.0 та iOS 18</span>
+                <span>{t("Оновлено під Swift 6.0 та iOS 18", locale)}</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.15]">
-                Опануй розробку для <br className="hidden sm:inline" />
+                {t("Опануй розробку для", locale)} <br className="hidden sm:inline" />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-ios-blue via-purple-400 to-pink-500">
-                  iPhone та iPad
+                  {t("iPhone та iPad", locale)}
                 </span>{' '}
-                з нуля
+                {t("з нуля", locale)}
               </h1>
 
               <p className="text-neutral-300 text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                Інтерактивна українська платформа для вивчення <strong>Swift</strong> та <strong>SwiftUI</strong>. Проходьте практичні модулі, пишіть сучасний декларативний код та одразу тестуйте його у вбудованому симуляторі iPhone 16 Pro!
+                {t("Інтерактивна українська платформа для вивчення", locale)} <strong>Swift</strong> {t("та", locale)} <strong>SwiftUI</strong>{t(". Проходьте практичні модулі, пишіть сучасний декларативний код та одразу тестуйте його у вбудованому симуляторі iPhone 16 Pro!", locale)}
               </p>
 
               {/* CTA Buttons */}
@@ -70,7 +76,7 @@ export default function HomePage() {
                   className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-ios-blue hover:bg-blue-600 text-white font-semibold text-sm shadow-lg shadow-ios-blue/25 hover:shadow-ios-blue/40 transition-all flex items-center justify-center gap-2 group"
                 >
                   <BookOpen className="w-4 h-4" />
-                  <span>Розпочати навчання</span>
+                  <span>{t("Розпочати навчання", locale)}</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
 
@@ -79,7 +85,7 @@ export default function HomePage() {
                   className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-neutral-800/80 hover:bg-neutral-700/80 text-white font-semibold text-sm border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2"
                 >
                   <Smartphone className="w-4 h-4 text-ios-blue" />
-                  <span>Відкрити iPhone Симулятор</span>
+                  <span>{t("Відкрити iPhone Симулятор", locale)}</span>
                 </Link>
               </div>
 
@@ -87,15 +93,15 @@ export default function HomePage() {
               <div className="grid grid-cols-3 gap-4 pt-6 border-t border-white/10 text-left">
                 <div>
                   <div className="text-2xl font-bold text-white">7+</div>
-                  <div className="text-xs text-neutral-400">Модулів від 0 до Pro</div>
+                  <div className="text-xs text-neutral-400">{t("Модулів від 0 до Pro", locale)}</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-ios-blue">100%</div>
-                  <div className="text-xs text-neutral-400">Практика на SwiftUI</div>
+                  <div className="text-xs text-neutral-400">{t("Практика на SwiftUI", locale)}</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-emerald-400">Vercel</div>
-                  <div className="text-xs text-neutral-400">Миттєвий деплой</div>
+                  <div className="text-xs text-neutral-400">{t("Миттєвий деплой", locale)}</div>
                 </div>
               </div>
             </div>
@@ -112,7 +118,7 @@ export default function HomePage() {
                       : 'text-neutral-400 hover:text-white'
                   }`}
                 >
-                  Кава (@State)
+                  {t("Кава (@State)", locale)}
                 </button>
                 <button
                   onClick={() => setActiveInteractiveMode('profile')}
@@ -122,7 +128,7 @@ export default function HomePage() {
                       : 'text-neutral-400 hover:text-white'
                   }`}
                 >
-                  Картка
+                  {t("Картка", locale)}
                 </button>
                 <button
                   onClick={() => setActiveInteractiveMode('todo')}
@@ -132,7 +138,7 @@ export default function HomePage() {
                       : 'text-neutral-400 hover:text-white'
                   }`}
                 >
-                  Завдання
+                  {t("Завдання", locale)}
                 </button>
                 <button
                   onClick={() => setActiveInteractiveMode('biometric')}
@@ -149,7 +155,7 @@ export default function HomePage() {
               {/* The Live Interactive Phone */}
               <IPhoneMockup interactiveType={activeInteractiveMode} />
               <p className="text-[11px] text-neutral-400 mt-2 text-center">
-                ✨ Клікайте на екран iPhone — кнопки, поля та скрол є повністю інтерактивними!
+                {t("✨ Клікайте на екран iPhone — кнопки, поля та скрол є повністю інтерактивними!", locale)}
               </p>
             </div>
           </div>
@@ -162,15 +168,17 @@ export default function HomePage() {
           <div className="space-y-1 text-center sm:text-left">
             <div className="flex items-center gap-2 justify-center sm:justify-start">
               <span className="text-xs font-semibold text-ios-blue uppercase tracking-wider">
-                Ваш прогрес в курсі
+                {t("Ваш прогрес в курсі", locale)}
               </span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white">
-                {completedCount} з {totalLessons} уроків
+                {completedCount} {t("з", locale)} {totalLessons} {t("уроків", locale)}
               </span>
             </div>
             <h3 className="text-lg font-bold text-white">
               {completedCount === 0
-                ? 'Ви ще не розпочали перший урок'
+                ? t("Ви ще не розпочали перший урок", locale)
+                : locale === 'en'
+                ? `${progressPercent}% of the curriculum completed`
                 : `Пройдено ${progressPercent}% навчальної програми`}
             </h3>
           </div>
@@ -183,8 +191,8 @@ export default function HomePage() {
               ></div>
             </div>
             <div className="flex justify-between text-[11px] text-neutral-400">
-              <span>{userProgress?.totalXp || 50} Зароблено XP</span>
-              <span>Рівень: Junior iOS</span>
+              <span>{userProgress?.totalXp || 50} {t("Зароблено XP", locale)}</span>
+              <span>{t("Рівень: Junior iOS", locale)}</span>
             </div>
           </div>
 
@@ -192,7 +200,7 @@ export default function HomePage() {
             href="/roadmap"
             className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all whitespace-nowrap"
           >
-            Продовжити навчання →
+            {t("Продовжити навчання →", locale)}
           </Link>
         </div>
       </section>
@@ -201,10 +209,10 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center space-y-3 mb-12">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
-            Чому саме SwiftLab для вивчення iOS?
+            {t("Чому саме SwiftLab для вивчення iOS?", locale)}
           </h2>
           <p className="text-neutral-400 text-sm max-w-xl mx-auto">
-            Ми зібрали тільки актуальні практики Apple станом на 2026 рік: жодного застарілого UIKit бойлерплейту, тільки чистий SwiftUI, SwiftData та Concurrency.
+            {t("Ми зібрали тільки актуальні практики Apple станом на 2026 рік: жодного застарілого UIKit бойлерплейту, тільки чистий SwiftUI, SwiftData та Concurrency.", locale)}
           </p>
         </div>
 
@@ -213,9 +221,9 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-2xl bg-ios-blue/20 text-ios-blue flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <Smartphone className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Живий iPhone Симулятор</h3>
+            <h3 className="text-lg font-bold text-white mb-2">{t("Живий iPhone Симулятор", locale)}</h3>
             <p className="text-xs text-neutral-400 leading-relaxed">
-              Не потрібно чекати завантаження важкого Xcode! Змінюйте параметри та одразу спостерігайте рендеринг у віртуальному iPhone 16 Pro з Dynamic Island.
+              {t("Не потрібно чекати завантаження важкого Xcode! Змінюйте параметри та одразу спостерігайте рендеринг у віртуальному iPhone 16 Pro з Dynamic Island.", locale)}
             </p>
           </div>
 
@@ -223,9 +231,9 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <Terminal className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Сучасний стек Swift 6</h3>
+            <h3 className="text-lg font-bold text-white mb-2">{t("Сучасний стек Swift 6", locale)}</h3>
             <p className="text-xs text-neutral-400 leading-relaxed">
-              Макроси, @Observable, async/await, SwiftData замість застарілого CoreData. Усе те, що зараз вимагають на співбесідах у провідних IT-компаніях.
+              {t("Макроси, @Observable, async/await, SwiftData замість застарілого CoreData. Усе те, що зараз вимагають на співбесідах у провідних IT-компаніях.", locale)}
             </p>
           </div>
 
@@ -233,9 +241,9 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <Award className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Підготовка до оферу</h3>
+            <h3 className="text-lg font-bold text-white mb-2">{t("Підготовка до оферу", locale)}</h3>
             <p className="text-xs text-neutral-400 leading-relaxed">
-              Тестові питання зі співбесід на Junior/Middle позиції, розбір пасток із опціоналами, витоками памʼяті (ARC) та готове портфоліо додатків.
+              {t("Тестові питання зі співбесід на Junior/Middle позиції, розбір пасток із опціоналами, витоками памʼяті (ARC) та готове портфоліо додатків.", locale)}
             </p>
           </div>
         </div>
@@ -245,20 +253,20 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-black text-white">Програма навчання</h2>
-            <p className="text-xs text-neutral-400">Покроковий шлях від першого рядка коду до App Store</p>
+            <h2 className="text-2xl font-black text-white">{t("Програма навчання", locale)}</h2>
+            <p className="text-xs text-neutral-400">{t("Покроковий шлях від першого рядка коду до App Store", locale)}</p>
           </div>
           <Link
             href="/roadmap"
             className="text-xs font-semibold text-ios-blue hover:underline flex items-center gap-1"
           >
-            <span>Всі уроки ({LESSONS.length})</span>
+            <span>{t("Всі уроки (", locale)}{lessons.length})</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {LESSONS.slice(0, 4).map((lesson, idx) => (
+          {lessons.slice(0, 4).map((lesson, idx) => (
             <Link
               key={lesson.id}
               href={`/lessons/${lesson.id}`}
@@ -272,7 +280,7 @@ export default function HomePage() {
                   <span className="text-[10px] font-semibold text-ios-blue uppercase tracking-wider">
                     {lesson.moduleTitle.split(':')[0]}
                   </span>
-                  <span className="text-[10px] text-neutral-500">• {lesson.estimatedMinutes} хв</span>
+                  <span className="text-[10px] text-neutral-500">• {lesson.estimatedMinutes} {t("хв", locale)}</span>
                 </div>
                 <h4 className="text-sm font-bold text-white group-hover:text-ios-blue transition-colors truncate">
                   {lesson.title}
@@ -293,13 +301,13 @@ export default function HomePage() {
           <div className="space-y-3 text-center md:text-left">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-semibold">
               <HelpCircle className="w-3.5 h-3.5 text-yellow-400" />
-              <span>Тренажер Співбесіди</span>
+              <span>{t("Тренажер Співбесіди", locale)}</span>
             </div>
             <h3 className="text-2xl sm:text-3xl font-black text-white">
-              Перевір свої знання з iOS Розробки
+              {t("Перевір свої знання з iOS Розробки", locale)}
             </h3>
             <p className="text-sm text-neutral-300 max-w-xl">
-              Пройдіть бліц-тест із реальних запитань: різниця Struct vs Class, опціонали, [weak self], життєвий цикл SwiftUI та Concurrency.
+              {t("Пройдіть бліц-тест із реальних запитань: різниця Struct vs Class, опціонали, [weak self], життєвий цикл SwiftUI та Concurrency.", locale)}
             </p>
           </div>
 
@@ -307,7 +315,7 @@ export default function HomePage() {
             href="/quiz"
             className="px-8 py-4 rounded-2xl bg-white text-neutral-900 hover:bg-neutral-100 font-bold text-sm shadow-xl hover:scale-105 transition-all whitespace-nowrap flex items-center gap-2"
           >
-            <span>Пройти тест ({QUIZ_QUESTIONS.length} питань)</span>
+            <span>{t("Пройти тест (", locale)}{questions.length} {t("питань)", locale)}</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -319,13 +327,13 @@ export default function HomePage() {
           <div className="space-y-3 text-center md:text-left max-w-2xl">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Особистий кабінет & Верифікація</span>
+              <span>{t("Особистий кабінет & Верифікація", locale)}</span>
             </div>
             <h3 className="text-2xl sm:text-3xl font-black text-white">
-              Отримайте офіційний іменний сертифікат SwiftLab
+              {t("Отримайте офіційний іменний сертифікат SwiftLab", locale)}
             </h3>
             <p className="text-sm text-neutral-300 leading-relaxed">
-              Увійдіть через Google або Email, підтвердіть профіль, відстежуйте свій рівень XP та завантажуйте персональний сертифікат для резюме та LinkedIn.
+              {t("Увійдіть через Google або Email, підтвердіть профіль, відстежуйте свій рівень XP та завантажуйте персональний сертифікат для резюме та LinkedIn.", locale)}
             </p>
           </div>
 
@@ -334,7 +342,7 @@ export default function HomePage() {
               href="/profile"
               className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-ios-blue to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold text-xs shadow-lg shadow-ios-blue/20 transition-all flex items-center justify-center gap-2"
             >
-              <span>Відкрити кабінет</span>
+              <span>{t("Відкрити кабінет", locale)}</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
@@ -342,7 +350,7 @@ export default function HomePage() {
               className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-neutral-900 hover:bg-neutral-800 border border-white/10 text-neutral-300 hover:text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2"
             >
               <Award className="w-4 h-4 text-yellow-400" />
-              <span>Зразок сертифіката</span>
+              <span>{t("Зразок сертифіката", locale)}</span>
             </Link>
           </div>
         </div>

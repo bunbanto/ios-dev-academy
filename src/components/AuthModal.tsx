@@ -1,4 +1,6 @@
 'use client';
+import { useLocale } from '@/i18n/LocaleContext';
+import { t } from '@/i18n/ui';
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
@@ -14,6 +16,7 @@ import {
 } from 'lucide-react';
 
 export default function AuthModal() {
+  const { locale } = useLocale();
   const {
     isAuthModalOpen,
     closeAuthModal,
@@ -56,7 +59,7 @@ export default function AuthModal() {
     try {
       await loginWithGoogle();
     } catch (e: any) {
-      setError(e.message || 'Не вдалося увійти через Google. Спробуйте ще раз.');
+      setError(t(e.message || 'Не вдалося увійти через Google. Спробуйте ще раз.', locale));
     } finally {
       setIsSubmitting(false);
     }
@@ -65,7 +68,7 @@ export default function AuthModal() {
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
-      setError('Введіть коректну електронну адресу');
+      setError(t('Введіть коректну електронну адресу', locale));
       return;
     }
     setError(null);
@@ -74,7 +77,7 @@ export default function AuthModal() {
       await loginWithEmail(email, name || undefined);
       setResendCooldown(30);
     } catch (e: any) {
-      setError(e.message || 'Помилка при відправці запиту. Спробуйте пізніше.');
+      setError(t(e.message || 'Помилка при відправці запиту. Спробуйте пізніше.', locale));
     } finally {
       setIsSubmitting(false);
     }
@@ -83,7 +86,7 @@ export default function AuthModal() {
   const handleVerifySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otpCode.length < 4) {
-      setError('Введіть код підтвердження');
+      setError(t('Введіть код підтвердження', locale));
       return;
     }
     setError(null);
@@ -91,10 +94,10 @@ export default function AuthModal() {
     try {
       const success = await verifyEmail(otpCode);
       if (!success) {
-        setError('Невірний код верифікації. Перевірте код або надішліть новий.');
+        setError(t('Невірний код верифікації. Перевірте код або надішліть новий.', locale));
       }
     } catch (e) {
-      setError('Помилка підтвердження. Спробуйте ще раз.');
+      setError(t('Помилка підтвердження. Спробуйте ще раз.', locale));
     } finally {
       setIsSubmitting(false);
     }
@@ -118,7 +121,7 @@ export default function AuthModal() {
         <button
           onClick={closeAuthModal}
           className="absolute top-5 right-5 p-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors"
-          aria-label="Закрити"
+          aria-label={t("Закрити", locale)}
         >
           <X className="w-4 h-4" />
         </button>
@@ -130,15 +133,15 @@ export default function AuthModal() {
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">
             {mode === 'verify'
-              ? 'Верифікація акаунту'
+              ? t("Верифікація акаунту", locale)
               : mode === 'signup'
-              ? 'Реєстрація у SwiftLab'
-              : 'Вхід в особистий кабінет'}
+              ? t("Реєстрація у SwiftLab", locale)
+              : t("Вхід в особистий кабінет", locale)}
           </h2>
           <p className="text-xs text-neutral-400 max-w-xs mx-auto">
             {mode === 'verify'
-              ? 'Підтвердіть вашу електронну адресу для отримання офіційного сертифіката'
-              : 'Зберігайте прогрес у хмарі, відкривайте бейджі та отримуйте сертифікати Apple розробника'}
+              ? t("Підтвердіть вашу електронну адресу для отримання офіційного сертифіката", locale)
+              : t("Зберігайте прогрес у хмарі, відкривайте бейджі та отримуйте сертифікати Apple розробника", locale)}
           </p>
         </div>
 
@@ -153,7 +156,7 @@ export default function AuthModal() {
         {mode === 'verify' ? (
           <form onSubmit={handleVerifySubmit} className="space-y-4">
             <div className="p-4 rounded-2xl bg-neutral-900/80 border border-white/5 space-y-2 text-center">
-              <span className="text-xs text-neutral-400">Код надіслано на:</span>
+              <span className="text-xs text-neutral-400">{t("Код надіслано на:", locale)}</span>
               <p className="text-sm font-semibold text-ios-blue">{user?.email || email}</p>
               
               {/* Dev hint showing the code for convenience */}
@@ -161,7 +164,7 @@ export default function AuthModal() {
                 <div className="mt-2 py-1.5 px-3 rounded-lg bg-ios-blue/10 border border-ios-blue/20 text-[11px] text-ios-blue flex items-center justify-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>
-                    Тестовий код: <strong>{lastGeneratedCode || user?.verificationCode}</strong> (або 123456)
+                    {t("Тестовий код:", locale)} <strong>{lastGeneratedCode || user?.verificationCode}</strong> {t("(або 123456)", locale)}
                   </span>
                 </div>
               )}
@@ -169,7 +172,7 @@ export default function AuthModal() {
 
             <div className="space-y-1">
               <label className="text-xs font-medium text-neutral-300">
-                Введіть 6-значний код підтвердження:
+                {t("Введіть 6-значний код підтвердження:", locale)}
               </label>
               <input
                 type="text"
@@ -187,7 +190,7 @@ export default function AuthModal() {
               disabled={isSubmitting || otpCode.length < 4}
               className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-ios-blue to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold text-sm shadow-lg shadow-ios-blue/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {isSubmitting ? 'Перевірка...' : 'Підтвердити та верифікувати'}
+              {isSubmitting ? t("Перевірка...", locale) : t("Підтвердити та верифікувати", locale)}
               <CheckCircle2 className="w-4 h-4" />
             </button>
 
@@ -197,7 +200,7 @@ export default function AuthModal() {
                 onClick={() => setMode('login')}
                 className="text-neutral-400 hover:text-white"
               >
-                Змінити email
+                {t("Змінити email", locale)}
               </button>
 
               <button
@@ -208,7 +211,7 @@ export default function AuthModal() {
               >
                 <RefreshCw className={`w-3 h-3 ${resendCooldown > 0 ? 'animate-spin' : ''}`} />
                 <span>
-                  {resendCooldown > 0 ? `Надіслати знову (${resendCooldown}с)` : 'Надіслати код повторно'}
+                  {resendCooldown > 0 ? (locale === 'en' ? `Send again (${resendCooldown}s)` : `Надіслати знову (${resendCooldown}с)`) : t("Надіслати код повторно", locale)}
                 </span>
               </button>
             </div>
@@ -240,14 +243,14 @@ export default function AuthModal() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                 />
               </svg>
-              <span>{isSubmitting ? 'Зʼєднання з Google...' : 'Увійти через Google'}</span>
+              <span>{isSubmitting ? t("Зʼєднання з Google...", locale) : t("Увійти через Google", locale)}</span>
             </button>
 
             {/* Divider */}
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-white/10" />
               <span className="text-[11px] uppercase tracking-wider text-neutral-500 font-semibold">
-                або через Email
+                {t("або через Email", locale)}
               </span>
               <div className="flex-1 h-px bg-white/10" />
             </div>
@@ -256,19 +259,19 @@ export default function AuthModal() {
             <form onSubmit={handleEmailSubmit} className="space-y-3">
               {mode === 'signup' && (
                 <div className="space-y-1">
-                  <label className="text-xs text-neutral-300 font-medium">Ваше імʼя</label>
+                  <label className="text-xs text-neutral-300 font-medium">{t("Ваше імʼя", locale)}</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Наприклад: Дмитро Мельник"
+                    placeholder={t("Наприклад: Дмитро Мельник", locale)}
                     className="w-full px-3.5 py-2.5 bg-neutral-900 border border-white/10 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-ios-blue transition-colors"
                   />
                 </div>
               )}
 
               <div className="space-y-1">
-                <label className="text-xs text-neutral-300 font-medium">Електронна пошта</label>
+                <label className="text-xs text-neutral-300 font-medium">{t("Електронна пошта", locale)}</label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
                   <input
@@ -288,7 +291,7 @@ export default function AuthModal() {
                 className="w-full mt-2 py-3 px-4 rounded-xl bg-ios-blue hover:bg-blue-600 text-white font-semibold text-xs shadow-lg shadow-ios-blue/20 transition-all flex items-center justify-center gap-2"
               >
                 <span>
-                  {mode === 'signup' ? 'Створити акаунт та отримати код' : 'Увійти з кодом перевірки'}
+                  {mode === 'signup' ? t("Створити акаунт та отримати код", locale) : t("Увійти з кодом перевірки", locale)}
                 </span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -298,7 +301,7 @@ export default function AuthModal() {
             <div className="text-center pt-2">
               {mode === 'login' ? (
                 <p className="text-xs text-neutral-400">
-                  Ще не маєте профілю?{' '}
+                  {t("Ще не маєте профілю?", locale)}{' '}
                   <button
                     onClick={() => {
                       setMode('signup');
@@ -306,12 +309,12 @@ export default function AuthModal() {
                     }}
                     className="text-ios-blue font-semibold hover:underline"
                   >
-                    Зареєструватися
+                    {t("Зареєструватися", locale)}
                   </button>
                 </p>
               ) : (
                 <p className="text-xs text-neutral-400">
-                  Вже маєте акаунт?{' '}
+                  {t("Вже маєте акаунт?", locale)}{' '}
                   <button
                     onClick={() => {
                       setMode('login');
@@ -319,7 +322,7 @@ export default function AuthModal() {
                     }}
                     className="text-ios-blue font-semibold hover:underline"
                   >
-                    Увійти
+                    {t("Увійти", locale)}
                   </button>
                 </p>
               )}
@@ -329,11 +332,11 @@ export default function AuthModal() {
             <div className="pt-3 border-t border-white/5 grid grid-cols-2 gap-2 text-[11px] text-neutral-400">
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>Іменний сертифікат</span>
+                <span>{t("Іменний сертифікат", locale)}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>Збереження в хмарі</span>
+                <span>{t("Збереження в хмарі", locale)}</span>
               </div>
             </div>
           </div>

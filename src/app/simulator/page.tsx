@@ -1,4 +1,5 @@
 'use client';
+import { t } from '@/i18n/ui';
 
 import React, { useState } from 'react';
 import {
@@ -19,13 +20,17 @@ import {
 import IPhoneMockup from '@/components/IPhoneMockup';
 import CodeBlock from '@/components/CodeBlock';
 import { PLAYGROUND_EXAMPLES } from '@/data/playground-examples';
+import { useLocale } from '@/i18n/LocaleContext';
+import { localizeContent } from '@/i18n/content';
 
 export default function SimulatorPage() {
+  const { locale } = useLocale();
+  const examples = localizeContent(PLAYGROUND_EXAMPLES, locale);
   const [selectedExampleId, setSelectedExampleId] = useState<string>('counter');
   const [copiedXcode, setCopiedXcode] = useState(false);
 
   const currentExample =
-    PLAYGROUND_EXAMPLES.find((e) => e.id === selectedExampleId) || PLAYGROUND_EXAMPLES[0];
+    examples.find((e) => e.id === selectedExampleId) || examples[0];
 
   const handleCopyForXcode = async () => {
     try {
@@ -56,10 +61,10 @@ export default function SimulatorPage() {
             <span>SwiftUI Live Simulator 16 Pro</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-            Інтерактивна пісочниця iPhone
+            {t("Інтерактивна пісочниця iPhone", locale)}
           </h1>
           <p className="text-neutral-400 text-sm mt-1 max-w-2xl">
-            Взаємодійте з елементами інтерфейсу прямо у браузері, вивчайте вихідний код SwiftUI та копіюйте його для використання у власному проєкті Xcode.
+            {t("Взаємодійте з елементами інтерфейсу прямо у браузері, вивчайте вихідний код SwiftUI та копіюйте його для використання у власному проєкті Xcode.", locale)}
           </p>
         </div>
 
@@ -70,12 +75,12 @@ export default function SimulatorPage() {
           {copiedXcode ? (
             <>
               <Check className="w-4 h-4 text-emerald-400" />
-              <span className="text-emerald-400">Скопійовано для Xcode!</span>
+              <span className="text-emerald-400">{t("Скопійовано для Xcode!", locale)}</span>
             </>
           ) : (
             <>
               <Apple className="w-4 h-4 text-ios-blue" />
-              <span>Копіювати для Xcode</span>
+              <span>{t("Копіювати для Xcode", locale)}</span>
             </>
           )}
         </button>
@@ -83,7 +88,7 @@ export default function SimulatorPage() {
 
       {/* Component Tabs Bar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar">
-        {PLAYGROUND_EXAMPLES.map((item) => {
+        {examples.map((item) => {
           const Icon = iconsMap[item.id] || Sparkles;
           const isSelected = item.id === selectedExampleId;
           return (
@@ -112,7 +117,7 @@ export default function SimulatorPage() {
             <div className="text-center mt-3 space-y-1">
               <span className="text-xs font-bold text-white block">iPhone 16 Pro Simulator</span>
               <p className="text-[11px] text-neutral-500">
-                Клікніть на острівець Dynamic Island вгорі або на кнопки всередині екрана
+                {t("Клікніть на острівець Dynamic Island вгорі або на кнопки всередині екрана", locale)}
               </p>
             </div>
           </div>
@@ -147,13 +152,13 @@ export default function SimulatorPage() {
           <div className="glass-card p-6 rounded-3xl border border-white/10 space-y-3">
             <h4 className="text-sm font-bold text-white flex items-center gap-2">
               <Apple className="w-4 h-4 text-ios-blue" />
-              <span>Як запустити цей код на власному iPhone або Mac?</span>
+              <span>{t("Як запустити цей код на власному iPhone або Mac?", locale)}</span>
             </h4>
             <ol className="space-y-2 text-xs text-neutral-300 list-decimal list-inside leading-relaxed">
-              <li>Відкрийте <strong>Xcode</strong> на вашому Mac (безкоштовно з Mac App Store).</li>
-              <li>Створіть новий проєкт: <strong>File → New → Project → iOS App</strong> (оберіть інтерфейс SwiftUI).</li>
-              <li>Замініть вміст файлу <code className="text-ios-blue font-mono">ContentView.swift</code> скопійованим вище кодом.</li>
-              <li>Натисніть <kbd className="px-1.5 py-0.5 rounded bg-neutral-800 border border-white/10 font-mono">⌘ + R</kbd> для запуску симулятора або підключіть iPhone кабелем!</li>
+              <li>{t("Відкрийте", locale)} <strong>Xcode</strong> {t("на вашому Mac (безкоштовно з Mac App Store).", locale)}</li>
+              <li>{t("Створіть новий проєкт:", locale)} <strong>File → New → Project → iOS App</strong> {t("(оберіть інтерфейс SwiftUI).", locale)}</li>
+              <li>{t("Замініть вміст файлу", locale)} <code className="text-ios-blue font-mono">ContentView.swift</code> {t("скопійованим вище кодом.", locale)}</li>
+              <li>{t("Натисніть", locale)} <kbd className="px-1.5 py-0.5 rounded bg-neutral-800 border border-white/10 font-mono">⌘ + R</kbd> {t("для запуску симулятора або підключіть iPhone кабелем!", locale)}</li>
             </ol>
           </div>
         </div>

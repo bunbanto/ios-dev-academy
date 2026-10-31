@@ -1,4 +1,5 @@
 'use client';
+import { t } from '@/i18n/ui';
 
 import React, { useState } from 'react';
 import {
@@ -12,8 +13,12 @@ import {
 } from 'lucide-react';
 import { CHEATSHEET_ITEMS } from '@/data/cheatsheet';
 import CodeBlock from '@/components/CodeBlock';
+import { useLocale } from '@/i18n/LocaleContext';
+import { localizeContent } from '@/i18n/content';
 
 export default function CheatsheetPage() {
+  const { locale } = useLocale();
+  const items = localizeContent(CHEATSHEET_ITEMS, locale);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -27,7 +32,7 @@ export default function CheatsheetPage() {
     'SwiftData',
   ];
 
-  const filteredItems = CHEATSHEET_ITEMS.filter((item) => {
+  const filteredItems = items.filter((item) => {
     const matchesSearch =
       item.title.toLowerCase().includes(search.toLowerCase()) ||
       item.syntax.toLowerCase().includes(search.toLowerCase()) ||
@@ -53,13 +58,13 @@ export default function CheatsheetPage() {
       <div className="space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-ios-blue/10 border border-ios-blue/30 text-ios-blue text-xs font-semibold">
           <BookMarked className="w-3.5 h-3.5" />
-          <span>Швидка допомога розробника</span>
+          <span>{t("Швидка допомога розробника", locale)}</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-          Шпаргалка Swift та SwiftUI
+          {t("Шпаргалка Swift та SwiftUI", locale)}
         </h1>
         <p className="text-neutral-400 text-sm max-w-2xl leading-relaxed">
-          Найуживаніші конструкції, синтаксис розгортання опціоналів, модифікатори SwiftUI та асинхронні патерни під рукою.
+          {t("Найуживаніші конструкції, синтаксис розгортання опціоналів, модифікатори SwiftUI та асинхронні патерни під рукою.", locale)}
         </p>
       </div>
 
@@ -71,7 +76,7 @@ export default function CheatsheetPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Шукати guard let, @State, async/await..."
+            placeholder={t("Шукати guard let, @State, async/await...", locale)}
             className="w-full pl-10 pr-4 py-2.5 bg-neutral-900 border border-white/10 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-ios-blue"
           />
         </div>
@@ -87,7 +92,7 @@ export default function CheatsheetPage() {
                   : 'bg-neutral-900 text-neutral-400 hover:text-white border-white/5'
               }`}
             >
-              {cat === 'all' ? 'Всі теми' : cat}
+              {cat === 'all' ? t("Всі теми", locale) : cat}
             </button>
           ))}
         </div>
@@ -113,12 +118,12 @@ export default function CheatsheetPage() {
                   {copiedId === item.id ? (
                     <>
                       <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      <span className="text-emerald-400 font-semibold">Скопійовано</span>
+                      <span className="text-emerald-400 font-semibold">{t("Скопійовано", locale)}</span>
                     </>
                   ) : (
                     <>
                       <Copy className="w-3.5 h-3.5" />
-                      <span>Копіювати синтаксис</span>
+                      <span>{t("Копіювати синтаксис", locale)}</span>
                     </>
                   )}
                 </button>

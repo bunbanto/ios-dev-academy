@@ -8,27 +8,29 @@ export interface UserProgress {
   currentModule: number;
 }
 
-const DEFAULT_PROGRESS: UserProgress = {
-  completedLessons: [],
-  quizScores: {},
-  totalXp: 50,
-  streakDays: 1,
-  lastActiveDate: new Date().toISOString().split('T')[0],
-  bookmarks: [],
-  currentModule: 1,
-};
+function createDefaultProgress(): UserProgress {
+  return {
+    completedLessons: [],
+    quizScores: {},
+    totalXp: 50,
+    streakDays: 1,
+    lastActiveDate: new Date().toISOString().split('T')[0],
+    bookmarks: [],
+    currentModule: 1,
+  };
+}
 
 const STORAGE_KEY = 'swiftlab_user_progress_v1';
 
 export function getUserProgress(): UserProgress {
-  if (typeof window === 'undefined') return DEFAULT_PROGRESS;
+  if (typeof window === 'undefined') return createDefaultProgress();
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_PROGRESS;
-    return { ...DEFAULT_PROGRESS, ...JSON.parse(raw) };
+    if (!raw) return createDefaultProgress();
+    return { ...createDefaultProgress(), ...JSON.parse(raw) };
   } catch (e) {
     console.error('Failed to parse user progress from storage', e);
-    return DEFAULT_PROGRESS;
+    return createDefaultProgress();
   }
 }
 

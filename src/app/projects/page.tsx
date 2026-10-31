@@ -1,4 +1,5 @@
 'use client';
+import { t } from '@/i18n/ui';
 
 import React, { useState } from 'react';
 import {
@@ -15,9 +16,13 @@ import {
 } from 'lucide-react';
 import { PORTFOLIO_PROJECTS } from '@/data/projects';
 import CodeBlock from '@/components/CodeBlock';
+import { useLocale } from '@/i18n/LocaleContext';
+import { localizeContent } from '@/i18n/content';
 
 export default function ProjectsPage() {
-  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(PORTFOLIO_PROJECTS[0]?.id || null);
+  const { locale } = useLocale();
+  const projects = localizeContent(PORTFOLIO_PROJECTS, locale);
+  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(projects[0]?.id || null);
 
   const toggleExpand = (id: string) => {
     setExpandedProjectId(expandedProjectId === id ? null : id);
@@ -29,19 +34,19 @@ export default function ProjectsPage() {
       <div className="space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
           <FolderGit2 className="w-3.5 h-3.5" />
-          <span>Портфоліо розробника</span>
+          <span>{t("Портфоліо розробника", locale)}</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-          Практичні проєкти для вашого резюме
+          {t("Практичні проєкти для вашого резюме", locale)}
         </h1>
         <p className="text-neutral-400 text-sm max-w-2xl leading-relaxed">
-          Роботодавці на співбесідах завжди шукають реальний досвід. Зберіть ці повноцінні проєкти, додайте їх у свій GitHub та продемонструйте знання архітектури й SwiftData.
+          {t("Роботодавці на співбесідах завжди шукають реальний досвід. Зберіть ці повноцінні проєкти, додайте їх у свій GitHub та продемонструйте знання архітектури й SwiftData.", locale)}
         </p>
       </div>
 
       {/* Projects List */}
       <div className="space-y-6">
-        {PORTFOLIO_PROJECTS.map((proj) => {
+        {projects.map((proj) => {
           const isExpanded = expandedProjectId === proj.id;
 
           return (
@@ -65,7 +70,7 @@ export default function ProjectsPage() {
                           : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
                       }`}
                     >
-                      {proj.level} Проєкт
+                      {proj.level} {t("Проєкт", locale)}
                     </span>
                     <span className="text-xs text-neutral-500 flex items-center gap-1">
                       <Clock className="w-3 h-3" />
@@ -94,7 +99,7 @@ export default function ProjectsPage() {
 
                 <div className="flex items-center gap-3 self-end md:self-center">
                   <button className="px-4 py-2 rounded-xl bg-ios-blue/20 hover:bg-ios-blue/30 text-ios-blue text-xs font-semibold flex items-center gap-1.5 transition-all">
-                    <span>{isExpanded ? 'Сховати інструкцію' : 'Покроковий план'}</span>
+                    <span>{isExpanded ? t("Сховати інструкцію", locale) : t("Покроковий план", locale)}</span>
                     {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
                 </div>
@@ -125,7 +130,7 @@ export default function ProjectsPage() {
 
                         {step.tips && (
                           <div className="p-3 bg-neutral-900 rounded-xl text-xs text-neutral-400 border border-white/5">
-                            💡 <strong>Порада:</strong> {step.tips}
+                            💡 <strong>{t("Порада:", locale)}</strong> {step.tips}
                           </div>
                         )}
                       </div>
@@ -134,7 +139,7 @@ export default function ProjectsPage() {
 
                   <div className="p-4 rounded-2xl bg-neutral-900/80 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="text-xs text-neutral-400">
-                      Готові поділитися проєктом? Завантажте його на GitHub та додайте тег <code className="text-ios-blue">#swiftlab-ios</code>.
+                      {t("Готові поділитися проєктом? Завантажте його на GitHub та додайте тег", locale)} <code className="text-ios-blue">#swiftlab-ios</code>.
                     </div>
                   </div>
                 </div>

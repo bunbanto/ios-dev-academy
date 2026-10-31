@@ -5,6 +5,8 @@ import { UserProfile } from '@/types';
 import { getUserProgress, saveUserProgress } from '@/lib/storage';
 import { auth, googleProvider, isFirebaseConfigured } from '@/lib/firebase';
 import { onAuthStateChanged, signInWithPopup, signOut, User as FirebaseUser } from 'firebase/auth';
+import { useLocale } from '@/i18n/LocaleContext';
+import { t } from '@/i18n/ui';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -28,6 +30,7 @@ const AUTH_STORAGE_KEY = 'swiftlab_auth_user_v1';
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { locale } = useLocale();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -73,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           const googleUser: UserProfile = {
             id: fbUser.uid,
-            name: fbUser.displayName || storedProfile.name || fbUser.email?.split('@')[0] || 'Розробник',
+            name: fbUser.displayName || storedProfile.name || fbUser.email?.split('@')[0] || t('Розробник', locale),
             email: fbUser.email || '',
             avatar: fbUser.photoURL || storedProfile.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${fbUser.email}`,
             provider: 'google',
@@ -81,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             verifiedAt: storedProfile.verifiedAt || new Date().toISOString(),
             joinedAt: storedProfile.joinedAt || new Date().toISOString().split('T')[0],
             role: storedProfile.role || 'Junior iOS Developer',
-            bio: storedProfile.bio || 'Вивчаю Swift 6 та SwiftUI для створення власного додатку в App Store.',
+            bio: storedProfile.bio || (locale === 'en' ? 'I am learning Swift 6 and SwiftUI to build my own app for the App Store.' : 'Вивчаю Swift 6 та SwiftUI для створення власного додатку в App Store.'),
             goal: storedProfile.goal || 'junior_job',
             githubUrl: storedProfile.githubUrl,
           };
@@ -104,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return () => unsubscribe();
     }
-  }, []);
+  }, [locale]);
 
   const openAuthModal = (tab: 'login' | 'signup' | 'verify' = 'login') => {
     setAuthModalTab(tab);
@@ -121,11 +124,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const isVercelOrRemote = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
       if (isVercelOrRemote) {
         throw new Error(
-          'Firebase не налаштовано на Vercel! Додайте змінні NEXT_PUBLIC_FIREBASE_* у Vercel Dashboard ➔ Settings ➔ Environment Variables і зробіть Redeploy.'
+          t('Firebase не налаштовано на Vercel! Додайте змінні NEXT_PUBLIC_FIREBASE_* у Vercel Dashboard ➔ Settings ➔ Environment Variables і зробіть Redeploy.', locale)
         );
       }
       throw new Error(
-        'Firebase ще не налаштовано локально. Створіть файл .env.local із параметрами вашого проєкту Firebase (див. .env.example).'
+        t('Firebase ще не налаштовано локально. Створіть файл .env.local із параметрами вашого проєкту Firebase (див. .env.example).', locale)
       );
     }
 
@@ -136,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const googleUser: UserProfile = {
         id: fbUser.uid,
-        name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Розробник',
+        name: fbUser.displayName || fbUser.email?.split('@')[0] || t('Розробник', locale),
         email: fbUser.email || '',
         avatar: fbUser.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${fbUser.email}`,
         provider: 'google',
@@ -144,7 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         verifiedAt: new Date().toISOString(),
         joinedAt: new Date().toISOString().split('T')[0],
         role: 'Junior iOS Developer',
-        bio: 'Вивчаю Swift 6 та SwiftUI для створення власного додатку в App Store.',
+        bio: locale === 'en' ? 'I am learning Swift 6 and SwiftUI to build my own app for the App Store.' : 'Вивчаю Swift 6 та SwiftUI для створення власного додатку в App Store.',
         goal: 'junior_job',
       };
 
@@ -158,16 +161,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       closeAuthModal();
     } catch (err: any) {
       if (err.code === 'auth/popup-closed-by-user') {
-        throw new Error('Вікно входу Google було закрите до завершення авторизації.');
+        throw new Error(t('Вікно входу Google було закрите до завершення авторизації.', locale));
       } else if (err.code === 'auth/unauthorized-domain') {
-        const currentDomain = typeof window !== 'undefined' ? window.location.hostname : 'цей домен';
+        const currentDomain = typeof window !== 'undefined' ? window.location.hostname : (locale === 'en' ? 'this domain' : 'цей домен');
         throw new Error(
-          `Домен "${currentDomain}" не авторизовано у Firebase Console! Додайте "${currentDomain}" у Firebase ➔ Authentication ➔ Settings ➔ Authorized Domains.`
+          locale === 'en'
+            ? `Domain "${currentDomain}" is not authorized in Firebase Console. Add it under Authentication → Settings → Authorized domains.`
+            : `Домен "${currentDomain}" не авторизовано у Firebase Console! Додайте "${currentDomain}" у Firebase ➔ Authentication ➔ Settings ➔ Authorized Domains.`
         );
       } else if (err.code === 'auth/cancelled-popup-request') {
-        throw new Error('Попередній запит було скасовано.');
+        throw new Error(t('Попередній запит було скасовано.', locale));
       } else {
-        throw new Error(err.message || 'Помилка авторизації через Google.');
+        throw new Error(err.message || t('Помилка авторизації через Google.', locale));
       }
     } finally {
       setIsLoading(false);
@@ -194,8 +199,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         provider: 'email',
         isVerified: false,
         joinedAt: existingStored?.joinedAt || new Date().toISOString().split('T')[0],
-        role: 'Студент курсу iOS',
-        bio: 'Початківець у світі мобільної розробки під екосистему Apple.',
+        role: locale === 'en' ? 'iOS course student' : 'Студент курсу iOS',
+        bio: locale === 'en' ? 'Beginner in Apple ecosystem mobile development.' : 'Початківець у світі мобільної розробки під екосистему Apple.',
         goal: 'own_app',
         verificationCode: code,
       };

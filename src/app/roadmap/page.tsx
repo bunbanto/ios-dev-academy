@@ -16,8 +16,13 @@ import {
 } from 'lucide-react';
 import { LESSONS } from '@/data/lessons/index';
 import { getUserProgress, UserProgress } from '@/lib/storage';
+import { useLocale } from '@/i18n/LocaleContext';
+import { localizeContent } from '@/i18n/content';
+import { t } from '@/i18n/ui';
 
 export default function RoadmapPage() {
+  const { locale } = useLocale();
+  const lessons = localizeContent(LESSONS, locale);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [progress, setProgress] = useState<UserProgress | null>(null);
@@ -28,13 +33,13 @@ export default function RoadmapPage() {
 
   const completedIds = progress?.completedLessons || [];
 
-  const filteredLessons = LESSONS.filter((lesson) => {
+  const filteredLessons = lessons.filter((lesson) => {
     const matchesSearch =
       lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       lesson.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       lesson.moduleTitle.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesDiff =
-      selectedDifficulty === 'all' || lesson.difficulty === selectedDifficulty;
+      selectedDifficulty === 'all' || lesson.difficulty === t(selectedDifficulty, locale);
     return matchesSearch && matchesDiff;
   });
 
@@ -45,7 +50,7 @@ export default function RoadmapPage() {
     }
     acc[lesson.moduleTitle].push(lesson);
     return acc;
-  }, {} as Record<string, typeof LESSONS>);
+  }, {} as Record<string, typeof lessons>);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
@@ -53,13 +58,13 @@ export default function RoadmapPage() {
       <div className="space-y-4 max-w-3xl">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ios-blue/10 border border-ios-blue/20 text-ios-blue text-xs font-semibold">
           <BookOpen className="w-3.5 h-3.5" />
-          <span>Повна навчальна програма</span>
+          <span>{locale === 'en' ? 'Complete learning curriculum' : t("Повна навчальна програма", locale)}</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-          Дорожня карта iOS Розробника
+          {locale === 'en' ? 'iOS Developer Roadmap' : t("Дорожня карта iOS Розробника", locale)}
         </h1>
         <p className="text-neutral-400 text-sm leading-relaxed">
-          Структурований план навчання від базових типів Swift до повноцінного створення додатків на SwiftUI та публікації в App Store. Проходьте уроки послідовно та відзначайте свій прогрес.
+          {locale === 'en' ? 'A structured learning path from Swift fundamentals to building complete SwiftUI apps and publishing them on the App Store. Work through the lessons in order and track your progress.' : t("Структурований план навчання від базових типів Swift до повноцінного створення додатків на SwiftUI та публікації в App Store. Проходьте уроки послідовно та відзначайте свій прогрес.", locale)}
         </p>
       </div>
 
@@ -71,7 +76,7 @@ export default function RoadmapPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Пошук теми, Swift, @State..."
+            placeholder={locale === 'en' ? 'Search topics, Swift, @State...' : t("Пошук теми, Swift, @State...", locale)}
             className="w-full pl-10 pr-4 py-2 bg-neutral-900 border border-white/10 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-ios-blue"
           />
         </div>
@@ -87,7 +92,7 @@ export default function RoadmapPage() {
                   : 'bg-neutral-900 text-neutral-400 hover:text-white border border-white/5'
               }`}
             >
-              {diff === 'all' ? 'Всі рівні' : diff}
+              {diff === 'all' ? (locale === 'en' ? 'All levels' : t("Всі рівні", locale)) : t(diff, locale)}
             </button>
           ))}
         </div>
@@ -117,7 +122,7 @@ export default function RoadmapPage() {
                 </div>
 
                 <span className="text-xs text-neutral-400">
-                  {completedInModule}/{lessons.length} завершено
+                  {completedInModule}/{lessons.length} {t("завершено", locale)}
                 </span>
               </div>
 
@@ -140,9 +145,9 @@ export default function RoadmapPage() {
                         <div className="flex items-center justify-between">
                           <span
                             className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                              lesson.difficulty === 'Початковий'
+                              lesson.difficulty === t('Початковий', locale)
                                 ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                                : lesson.difficulty === 'Середній'
+                                : lesson.difficulty === t('Середній', locale)
                                 ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
                                 : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
                             }`}
@@ -152,7 +157,7 @@ export default function RoadmapPage() {
 
                           <div className="flex items-center gap-1 text-[11px] text-neutral-400">
                             <Clock className="w-3 h-3" />
-                            <span>{lesson.estimatedMinutes} хв</span>
+                            <span>{lesson.estimatedMinutes} {t("хв", locale)}</span>
                           </div>
                         </div>
 
@@ -170,17 +175,17 @@ export default function RoadmapPage() {
                         {isDone ? (
                           <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
                             <CheckCircle2 className="w-4 h-4" />
-                            <span>Пройдено (+25 XP)</span>
+                            <span>{t("Пройдено (+25 XP)", locale)}</span>
                           </span>
                         ) : (
                           <span className="flex items-center gap-1.5 text-neutral-500 group-hover:text-neutral-300">
                             <Circle className="w-3.5 h-3.5" />
-                            <span>Не розпочато</span>
+                            <span>{t("Не розпочато", locale)}</span>
                           </span>
                         )}
 
                         <span className="text-ios-blue font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                          <span>Відкрити урок</span>
+                          <span>{t("Відкрити урок", locale)}</span>
                           <ArrowRight className="w-3.5 h-3.5" />
                         </span>
                       </div>
