@@ -18,6 +18,7 @@ import {
   LogOut,
   ChevronDown,
   Sparkles,
+  Trophy,
 } from 'lucide-react';
 import { getUserProgress, UserProgress } from '@/lib/storage';
 import { useAuth } from '@/context/AuthContext';
@@ -61,6 +62,7 @@ export default function Navbar() {
     { href: '/roadmap', label: t('Програма', locale), icon: BookOpen },
     { href: '/simulator', label: t('Симулятор', locale), icon: Smartphone },
     { href: '/quiz', label: t('Тренажер', locale), icon: HelpCircle },
+    { href: '/leaderboard', label: locale === 'en' ? 'Leaderboard' : 'Рейтинг', icon: Trophy },
     { href: '/cheatsheet', label: t('Шпаргалка', locale), icon: Code2 },
     { href: '/projects', label: t('Проєкти', locale), icon: FolderGit2 },
   ];

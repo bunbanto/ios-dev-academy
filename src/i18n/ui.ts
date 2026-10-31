@@ -15,7 +15,6 @@ const ui: Record<string, string> = {
   'Не вдалося увійти через Google. Спробуйте ще раз.': 'Could not sign in with Google. Please try again.',
   'Введіть коректну електронну адресу': 'Enter a valid email address.',
   'Не вдалося надіслати запит. Спробуйте ще раз пізніше.': 'Could not send the request. Please try again later.',
-  'Введіть код підтвердження': 'Enter the verification code.',
   'Невірний код верифікації. Перевірте код або надішліть новий.': 'The verification code is incorrect. Check it or request a new one.',
   'Помилка підтвердження. Спробуйте ще раз.': 'Verification failed. Please try again.',
   'Firebase не налаштовано на Vercel! Додайте змінні NEXT_PUBLIC_FIREBASE_* у Vercel Dashboard ➔ Settings ➔ Environment Variables і зробіть Redeploy.': 'Firebase is not configured on Vercel. Add the NEXT_PUBLIC_FIREBASE_* variables in Vercel Dashboard → Settings → Environment Variables, then redeploy.',

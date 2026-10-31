@@ -10,7 +10,6 @@ import {
   ShieldCheck,
   CheckCircle2,
   ArrowRight,
-  Sparkles,
   RefreshCw,
   AlertCircle,
 } from 'lucide-react';
@@ -23,17 +22,19 @@ export default function AuthModal() {
     authModalTab,
     loginWithGoogle,
     loginWithEmail,
-    verifyEmail,
-    resendVerificationCode,
-    lastGeneratedCode,
+    confirmEmailVerification,
+    resendEmailVerification,
+    sendPasswordReset,
     user,
   } = useAuth();
 
   const [mode, setMode] = useState<'login' | 'signup' | 'verify'>('login');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [name, setName] = useState('');
-  const [otpCode, setOtpCode] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
@@ -71,11 +72,57 @@ export default function AuthModal() {
       setError(t('Введіть коректну електронну адресу', locale));
       return;
     }
+    if (password.length < 6) {
+      setError(locale === 'en' ? 'Password must be at least 6 characters.' : 'Пароль має містити щонайменше 6 символів.');
+      return;
+    }
+    if (mode === 'signup' && password !== passwordConfirmation) {
+      setError(locale === 'en' ? 'Passwords do not match.' : 'Паролі не збігаються.');
+      return;
+    }
+    setError(null);
+    setNotice(null);
+    setIsSubmitting(true);
+    try {
+      await loginWithEmail(email, password, name || undefined, mode === 'signup');
+      if (mode === 'signup') setMode('verify');
+    } catch (e: any) {
+      const code = e.code as string | undefined;
+      const messages: Record<string, string> = locale === 'en'
+        ? {
+            'auth/email-already-in-use': 'An account with this email already exists. Sign in instead.',
+            'auth/invalid-credential': 'Email or password is incorrect.',
+            'auth/invalid-login-credentials': 'Email or password is incorrect.',
+            'auth/weak-password': 'Password must be at least 6 characters.',
+            'auth/operation-not-allowed': 'Enable Email/Password sign-in in Firebase Authentication settings.',
+            'auth/network-request-failed': 'Network error. Check your connection and try again.',
+          }
+        : {
+            'auth/email-already-in-use': 'Акаунт із цією адресою вже існує. Спробуйте увійти.',
+            'auth/invalid-credential': 'Неправильна електронна адреса або пароль.',
+            'auth/invalid-login-credentials': 'Неправильна електронна адреса або пароль.',
+            'auth/weak-password': 'Пароль має містити щонайменше 6 символів.',
+            'auth/operation-not-allowed': 'Увімкніть вхід за email і паролем у налаштуваннях Firebase Authentication.',
+            'auth/network-request-failed': 'Помилка мережі. Перевірте з’єднання та спробуйте ще раз.',
+          };
+      setError(messages[code || ''] || t(e.message || 'Не вдалося надіслати запит. Спробуйте ще раз пізніше.', locale));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!email || !email.includes('@')) {
+      setError(locale === 'en' ? 'Enter your email address first.' : 'Спершу введіть свою електронну адресу.');
+      return;
+    }
     setError(null);
     setIsSubmitting(true);
     try {
-      await loginWithEmail(email, name || undefined);
-      setResendCooldown(30);
+      await sendPasswordReset(email);
+      setNotice(locale === 'en'
+        ? 'If an account exists for this address, Firebase has sent a password reset link.'
+        : 'Якщо акаунт із цією адресою існує, Firebase надіслав посилання для зміни пароля.');
     } catch (e: any) {
       setError(t(e.message || 'Не вдалося надіслати запит. Спробуйте ще раз пізніше.', locale));
     } finally {
@@ -83,21 +130,17 @@ export default function AuthModal() {
     }
   };
 
-  const handleVerifySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (otpCode.length < 4) {
-      setError(t('Введіть код підтвердження', locale));
-      return;
-    }
+  const handleVerifySubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     setError(null);
     setIsSubmitting(true);
     try {
-      const success = await verifyEmail(otpCode);
+      const success = await confirmEmailVerification();
       if (!success) {
-        setError(t('Невірний код верифікації. Перевірте код або надішліть новий.', locale));
+        setError(locale === 'en' ? 'Email is not verified yet. Open the verification link sent to your inbox, then try again.' : 'Email ще не підтверджено. Перейдіть за посиланням із листа та спробуйте ще раз.');
       }
-    } catch (e) {
-      setError(t('Помилка підтвердження. Спробуйте ще раз.', locale));
+    } catch (e: any) {
+      setError(t(e.message || 'Помилка підтвердження. Спробуйте ще раз.', locale));
     } finally {
       setIsSubmitting(false);
     }
@@ -106,8 +149,12 @@ export default function AuthModal() {
   const handleResend = async () => {
     if (resendCooldown > 0) return;
     setError(null);
-    await resendVerificationCode();
-    setResendCooldown(30);
+    try {
+      await resendEmailVerification();
+      setResendCooldown(30);
+    } catch (e: any) {
+      setError(t(e.message || 'Помилка підтвердження. Спробуйте ще раз.', locale));
+    }
   };
 
   return (
@@ -133,14 +180,14 @@ export default function AuthModal() {
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">
             {mode === 'verify'
-              ? t("Верифікація акаунту", locale)
+              ? (locale === 'en' ? 'Verify your email' : 'Підтвердьте email')
               : mode === 'signup'
               ? t("Реєстрація у SwiftLab", locale)
               : t("Вхід в особистий кабінет", locale)}
           </h2>
           <p className="text-xs text-neutral-400 max-w-xs mx-auto">
             {mode === 'verify'
-              ? t("Підтвердіть вашу електронну адресу для отримання офіційного сертифіката", locale)
+              ? (locale === 'en' ? 'Open the verification link we sent to your email address.' : 'Перейдіть за посиланням для підтвердження, яке ми надіслали на вашу адресу.')
               : t("Зберігайте прогрес у хмарі, відкривайте значки та отримуйте сертифікати Apple розробника", locale)}
           </p>
         </div>
@@ -151,46 +198,28 @@ export default function AuthModal() {
             <span>{error}</span>
           </div>
         )}
+        {notice && (
+          <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs leading-relaxed">
+            {notice}
+          </div>
+        )}
 
-        {/* VERIFY MODE */}
+        {/* EMAIL VERIFICATION MODE */}
         {mode === 'verify' ? (
           <form onSubmit={handleVerifySubmit} className="space-y-4">
             <div className="p-4 rounded-2xl bg-neutral-900/80 border border-white/5 space-y-2 text-center">
-              <span className="text-xs text-neutral-400">{t("Код надіслано на:", locale)}</span>
-              <p className="text-sm font-semibold text-ios-blue">{user?.email || email}</p>
-              
-              {/* Dev hint showing the code for convenience */}
-              {(lastGeneratedCode || user?.verificationCode) && (
-                <div className="mt-2 py-1.5 px-3 rounded-lg bg-ios-blue/10 border border-ios-blue/20 text-[11px] text-ios-blue flex items-center justify-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>
-                    {t("Тестовий код:", locale)} <strong>{lastGeneratedCode || user?.verificationCode}</strong> {t("(або 123456)", locale)}
-                  </span>
-                </div>
-              )}
+              <Mail className="w-5 h-5 text-ios-blue mx-auto" />
+              <p className="text-sm font-semibold text-white">{user?.email || email}</p>
+              <p className="text-xs text-neutral-400">
+                {locale === 'en' ? 'Check your inbox and spam folder for the Firebase verification email.' : 'Перевірте вхідні листи та папку зі спамом — там має бути лист підтвердження від Firebase.'}
+              </p>
             </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-neutral-300">
-                {t("Введіть 6-значний код підтвердження:", locale)}
-              </label>
-              <input
-                type="text"
-                maxLength={6}
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                placeholder="123456"
-                className="w-full text-center tracking-[0.5em] text-2xl font-mono py-3 bg-neutral-900 border border-white/10 rounded-xl text-white placeholder-neutral-600 focus:outline-none focus:border-ios-blue transition-colors"
-                autoFocus
-              />
-            </div>
-
             <button
               type="submit"
-              disabled={isSubmitting || otpCode.length < 4}
+              disabled={isSubmitting}
               className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-ios-blue to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold text-sm shadow-lg shadow-ios-blue/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {isSubmitting ? t("Перевірка...", locale) : t("Підтвердити та верифікувати", locale)}
+              {isSubmitting ? (locale === 'en' ? 'Checking…' : 'Перевіряємо…') : (locale === 'en' ? 'I verified my email' : 'Я підтвердив email')}
               <CheckCircle2 className="w-4 h-4" />
             </button>
 
@@ -200,7 +229,7 @@ export default function AuthModal() {
                 onClick={() => setMode('login')}
                 className="text-neutral-400 hover:text-white"
               >
-                {t("Змінити email", locale)}
+                {locale === 'en' ? 'Back to sign in' : 'Повернутися до входу'}
               </button>
 
               <button
@@ -211,7 +240,7 @@ export default function AuthModal() {
               >
                 <RefreshCw className={`w-3 h-3 ${resendCooldown > 0 ? 'animate-spin' : ''}`} />
                 <span>
-                  {resendCooldown > 0 ? (locale === 'en' ? `Send again (${resendCooldown}s)` : `Надіслати знову (${resendCooldown}с)`) : t("Надіслати код повторно", locale)}
+                  {resendCooldown > 0 ? (locale === 'en' ? `Send again (${resendCooldown}s)` : `Надіслати ще раз (${resendCooldown}с)`) : (locale === 'en' ? 'Resend verification email' : 'Надіслати лист повторно')}
                 </span>
               </button>
             </div>
@@ -285,17 +314,54 @@ export default function AuthModal() {
                 </div>
               </div>
 
+              <div className="space-y-1">
+                <label className="text-xs text-neutral-300 font-medium">{locale === 'en' ? 'Password' : 'Пароль'}</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={locale === 'en' ? 'At least 6 characters' : 'Щонайменше 6 символів'}
+                  className="w-full px-3.5 py-2.5 bg-neutral-900 border border-white/10 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-ios-blue transition-colors"
+                />
+              </div>
+
+              {mode === 'signup' && (
+                <div className="space-y-1">
+                  <label className="text-xs text-neutral-300 font-medium">{locale === 'en' ? 'Confirm password' : 'Повторіть пароль'}</label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    autoComplete="new-password"
+                    value={passwordConfirmation}
+                    onChange={(e) => setPasswordConfirmation(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-neutral-900 border border-white/10 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-ios-blue transition-colors"
+                  />
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={isSubmitting}
                 className="w-full mt-2 py-3 px-4 rounded-xl bg-ios-blue hover:bg-blue-600 text-white font-semibold text-xs shadow-lg shadow-ios-blue/20 transition-all flex items-center justify-center gap-2"
               >
                 <span>
-                  {mode === 'signup' ? t("Створити акаунт та отримати код", locale) : t("Увійти з кодом перевірки", locale)}
+                  {mode === 'signup' ? (locale === 'en' ? 'Create account' : 'Створити акаунт') : (locale === 'en' ? 'Sign in with email' : 'Увійти через email')}
                 </span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </form>
+
+            {mode === 'login' && (
+              <div className="text-right -mt-2">
+                <button type="button" onClick={handlePasswordReset} disabled={isSubmitting} className="text-[11px] text-neutral-400 hover:text-ios-blue disabled:opacity-50">
+                  {locale === 'en' ? 'Forgot password?' : 'Забули пароль?'}
+                </button>
+              </div>
+            )}
 
             {/* Switch Mode */}
             <div className="text-center pt-2">

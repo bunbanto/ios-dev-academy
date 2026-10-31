@@ -1,7 +1,7 @@
 'use client';
 import { t } from '@/i18n/ui';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   HelpCircle,
@@ -20,10 +20,32 @@ import CodeBlock from '@/components/CodeBlock';
 import { getUserProgress, saveUserProgress } from '@/lib/storage';
 import { useLocale } from '@/i18n/LocaleContext';
 import { localizeContent } from '@/i18n/content';
+import { generateQuizSet } from '@/lib/quiz';
+import { recordQuizAttempt } from '@/lib/leaderboard';
+import { useAuth } from '@/context/AuthContext';
 
 export default function QuizPage() {
   const { locale } = useLocale();
-  const questions = localizeContent(QUIZ_QUESTIONS, locale);
+  const { user, isFirebaseReady, openAuthModal } = useAuth();
+  const [quizQuestions, setQuizQuestions] = useState(() => QUIZ_QUESTIONS.slice(0, 8));
+  const [leaderboardStatus, setLeaderboardStatus] = useState<'idle' | 'saving' | 'saved' | 'sign-in' | 'firebase' | 'error'>('idle');
+  const isFinishing = useRef(false);
+
+  useEffect(() => {
+    setQuizQuestions(generateQuizSet(QUIZ_QUESTIONS));
+  }, []);
+
+  const questions = quizQuestions.map(({ translations, ...question }) => {
+    const localized = localizeContent(question, locale);
+    if (locale === 'en' && translations?.en) {
+      return {
+        ...localized,
+        ...translations.en,
+        codeSnippet: translations.en.codeSnippet ?? localized.codeSnippet,
+      };
+    }
+    return localized;
+  });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -42,18 +64,36 @@ export default function QuizPage() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
       setSelectedOption(null);
       setIsAnswered(false);
     } else {
+      if (isFinishing.current) return;
+      isFinishing.current = true;
       setIsFinished(true);
-      // save progress XP
-      const earnedXp = (score + (selectedOption === currentQ.correctAnswer ? 1 : 0)) * 20;
+      const correctAnswers = score + (selectedOption === currentQ.correctAnswer ? 1 : 0);
+      const earnedXp = correctAnswers * 20;
       const progress = getUserProgress();
       progress.totalXp += earnedXp;
+      progress.quizScores ??= {};
+      progress.quizScores[`quiz-${Date.now()}`] = correctAnswers;
       saveUserProgress(progress);
+
+      if (user && isFirebaseReady) {
+        setLeaderboardStatus('saving');
+        try {
+          await recordQuizAttempt(user, correctAnswers);
+          setLeaderboardStatus('saved');
+        } catch {
+          setLeaderboardStatus('error');
+        }
+      } else if (!isFirebaseReady) {
+        setLeaderboardStatus('firebase');
+      } else {
+        setLeaderboardStatus('sign-in');
+      }
 
       try {
         confetti({
@@ -68,11 +108,14 @@ export default function QuizPage() {
   };
 
   const handleRestart = () => {
+    isFinishing.current = false;
+    setQuizQuestions(generateQuizSet(QUIZ_QUESTIONS));
     setCurrentIndex(0);
     setSelectedOption(null);
     setIsAnswered(false);
     setScore(0);
     setIsFinished(false);
+    setLeaderboardStatus('idle');
   };
 
   const progressPercent = Math.round(((currentIndex + 1) / questions.length) * 100);
@@ -222,12 +265,34 @@ export default function QuizPage() {
 
           <div className="p-6 bg-neutral-900 rounded-2xl border border-white/10 inline-block min-w-[200px]">
             <span className="text-4xl font-black text-white block">
-              {score} / {QUIZ_QUESTIONS.length}
+              {score} / {questions.length}
             </span>
             <span className="text-xs text-emerald-400 font-semibold block mt-1">
               {Math.round((score / questions.length) * 100)}% {locale === 'en' ? 'Correct answers' : t("Правильних відповідей", locale)}
             </span>
           </div>
+
+          <p className="text-sm text-yellow-300 font-semibold">
+            {locale === 'en' ? `${score * 20} points earned` : `${score * 20} балів за цей раунд`}
+          </p>
+
+          {leaderboardStatus === 'saved' && (
+            <p className="text-xs text-emerald-300">{locale === 'en' ? 'Your points were added to the leaderboard.' : 'Бали додано до таблиці лідерів.'}</p>
+          )}
+          {leaderboardStatus === 'saving' && (
+            <p className="text-xs text-neutral-400">{locale === 'en' ? 'Saving your score…' : 'Зберігаємо результат…'}</p>
+          )}
+          {leaderboardStatus === 'sign-in' && (
+            <button type="button" onClick={() => openAuthModal('login')} className="text-xs text-ios-blue hover:text-white">
+              {locale === 'en' ? 'Sign in to join the leaderboard' : 'Увійдіть, щоб потрапити до рейтингу'}
+            </button>
+          )}
+          {leaderboardStatus === 'firebase' && (
+            <p className="text-xs text-amber-300">{locale === 'en' ? 'Leaderboard requires Firebase configuration.' : 'Для таблиці лідерів потрібно налаштувати Firebase.'}</p>
+          )}
+          {leaderboardStatus === 'error' && (
+            <p className="text-xs text-amber-300">{locale === 'en' ? 'Could not save your leaderboard score. Please try again later.' : 'Не вдалося зберегти результат у рейтингу. Спробуйте пізніше.'}</p>
+          )}
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <button
@@ -244,6 +309,13 @@ export default function QuizPage() {
             >
               <BookOpen className="w-4 h-4" />
               <span>{t("Повернутися до уроків", locale)}</span>
+            </Link>
+            <Link
+              href="/leaderboard"
+              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-neutral-800 hover:bg-neutral-700 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all border border-white/10"
+            >
+              <Award className="w-4 h-4" />
+              <span>{locale === 'en' ? 'Leaderboard' : 'Таблиця лідерів'}</span>
             </Link>
           </div>
         </div>

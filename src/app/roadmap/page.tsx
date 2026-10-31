@@ -12,13 +12,14 @@ import {
   Search,
   Check,
   Circle,
-  Award
+  LockKeyhole,
 } from 'lucide-react';
 import { LESSONS } from '@/data/lessons/index';
 import { getUserProgress, UserProgress } from '@/lib/storage';
 import { useLocale } from '@/i18n/LocaleContext';
 import { localizeContent } from '@/i18n/content';
 import { t } from '@/i18n/ui';
+import { isModuleUnlocked } from '@/lib/progression';
 
 export default function RoadmapPage() {
   const { locale } = useLocale();
@@ -101,8 +102,11 @@ export default function RoadmapPage() {
       {/* Module List */}
       <div className="space-y-12">
         {Object.entries(modulesMap).map(([moduleTitle, lessons]) => {
-          const completedInModule = lessons.filter((l) => completedIds.includes(l.id)).length;
-          const isModuleFullyComplete = completedInModule === lessons.length && lessons.length > 0;
+          const moduleNumber = lessons[0]?.module ?? 1;
+          const allModuleLessons = LESSONS.filter((lesson) => lesson.module === moduleNumber);
+          const completedInModule = allModuleLessons.filter((lesson) => completedIds.includes(lesson.id)).length;
+          const isModuleFullyComplete = completedInModule === allModuleLessons.length && allModuleLessons.length > 0;
+          const isUnlocked = isModuleUnlocked(moduleNumber, LESSONS, completedIds);
 
           return (
             <div key={moduleTitle} className="space-y-4">
@@ -111,22 +115,30 @@ export default function RoadmapPage() {
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
-                      isModuleFullyComplete
+                      !isUnlocked
+                        ? 'bg-neutral-800 text-neutral-500 border border-white/10'
+                        : isModuleFullyComplete
                         ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
                         : 'bg-ios-blue/20 text-ios-blue border border-ios-blue/30'
                     }`}
                   >
-                    {isModuleFullyComplete ? <Check className="w-4 h-4" /> : '★'}
+                    {!isUnlocked ? <LockKeyhole className="w-3.5 h-3.5" /> : isModuleFullyComplete ? <Check className="w-4 h-4" /> : '★'}
                   </div>
                   <h2 className="text-xl font-bold text-white tracking-tight">{moduleTitle}</h2>
                 </div>
 
                 <span className="text-xs text-neutral-400">
-                  {completedInModule}/{lessons.length} {t("завершено", locale)}
+                  {completedInModule}/{allModuleLessons.length} {t("завершено", locale)}
                 </span>
               </div>
 
-              {/* Lesson Grid */}
+              {!isUnlocked ? (
+                <div className="glass-card rounded-2xl border border-white/5 p-5 flex items-center gap-3 text-sm text-neutral-400">
+                  <LockKeyhole className="w-5 h-5 shrink-0 text-neutral-500" />
+                  <p>{locale === 'en' ? 'Complete every lesson in the previous module to unlock this one.' : 'Завершіть усі уроки попереднього модуля, щоб відкрити цей.'}</p>
+                </div>
+              ) : (
+              /* Lesson Grid */
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {lessons.map((lesson) => {
                   const isDone = completedIds.includes(lesson.id);
@@ -193,6 +205,7 @@ export default function RoadmapPage() {
                   );
                 })}
               </div>
+              )}
             </div>
           );
         })}

@@ -25,7 +25,8 @@ import {
   ThumbsDown,
   ThumbsUp,
   Bookmark,
-  Share2
+  Share2,
+  LockKeyhole,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { LESSONS } from '@/data/lessons/index';
@@ -33,6 +34,7 @@ import CodeBlock from '@/components/CodeBlock';
 import { getUserProgress, markLessonCompleted, toggleBookmark, UserProgress } from '@/lib/storage';
 import { useLocale } from '@/i18n/LocaleContext';
 import { localizeContent } from '@/i18n/content';
+import { isModuleUnlocked } from '@/lib/progression';
 
 export default function LessonDetailPage() {
   const { locale } = useLocale();
@@ -46,6 +48,8 @@ export default function LessonDetailPage() {
   const [showHint, setShowHint] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
   const [comparisonTab, setComparisonTab] = useState<'good' | 'bad'>('good');
+  const [accessCheckedForLesson, setAccessCheckedForLesson] = useState<string | null>(null);
+  const [isModuleAccessGranted, setIsModuleAccessGranted] = useState(true);
   
   // Checkpoints interactive state: map of checkpoint index -> selected option index
   const [checkpointAnswers, setCheckpointAnswers] = useState<Record<number, number>>({});
@@ -55,13 +59,15 @@ export default function LessonDetailPage() {
   useEffect(() => {
     if (lessonId) {
       const progress = getUserProgress();
+      setIsModuleAccessGranted(isModuleUnlocked(lesson?.module ?? 1, LESSONS, progress.completedLessons));
+      setAccessCheckedForLesson(lessonId);
       setIsCompleted(progress.completedLessons.includes(lessonId));
       setIsBookmarked(progress.bookmarks?.includes(lessonId) || false);
       setShowHint(false);
       setShowSolution(false);
       setCheckpointAnswers({});
     }
-  }, [lessonId]);
+  }, [lessonId, lesson?.module]);
 
   if (!lesson) {
     return (
@@ -72,6 +78,26 @@ export default function LessonDetailPage() {
           href="/roadmap"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-ios-blue text-white text-xs font-semibold"
         >
+          <ArrowLeft className="w-4 h-4" />
+          <span>{t("Повернутися до програми", locale)}</span>
+        </Link>
+      </div>
+    );
+  }
+
+  if (lesson.module > 1 && accessCheckedForLesson !== lessonId) {
+    return <div className="max-w-3xl mx-auto px-4 py-20 text-center text-sm text-neutral-400">{locale === 'en' ? 'Checking course access…' : 'Перевіряємо доступ до курсу…'}</div>;
+  }
+
+  if (lesson.module > 1 && !isModuleAccessGranted) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-5">
+        <div className="mx-auto w-14 h-14 rounded-2xl bg-neutral-800 text-neutral-400 flex items-center justify-center">
+          <LockKeyhole className="w-6 h-6" />
+        </div>
+        <h1 className="text-2xl font-bold text-white">{locale === 'en' ? 'This module is locked' : 'Цей модуль ще закритий'}</h1>
+        <p className="text-sm text-neutral-400">{locale === 'en' ? 'Complete every lesson in the previous module to unlock this one.' : 'Завершіть усі уроки попереднього модуля, щоб відкрити цей.'}</p>
+        <Link href="/roadmap" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-ios-blue text-white text-xs font-semibold">
           <ArrowLeft className="w-4 h-4" />
           <span>{t("Повернутися до програми", locale)}</span>
         </Link>

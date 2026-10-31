@@ -80,6 +80,14 @@ export interface QuizQuestion {
   correctAnswer: number;
   explanation: string;
   difficulty: 'easy' | 'medium' | 'hard';
+  translations?: {
+    en: {
+      question: string;
+      codeSnippet?: string;
+      options: string[];
+      explanation: string;
+    };
+  };
 }
 
 export interface CheatsheetItem {
@@ -130,7 +138,6 @@ export interface UserProfile {
   bio?: string;
   githubUrl?: string;
   goal?: string;
-  verificationCode?: string;
 }
 
 export interface Achievement {

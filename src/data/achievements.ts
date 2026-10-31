@@ -5,7 +5,7 @@ export const BASE_ACHIEVEMENTS: Omit<Achievement, 'unlocked' | 'unlockedAt'>[] =
   {
     id: 'verified_account',
     title: 'Верифікований розробник',
-    description: 'Підтвердити свій обліковий запис через Google або Email OTP.',
+    description: 'Увійти через Google або підтвердити адресу електронної пошти.',
     icon: 'ShieldCheck',
     xpReward: 50,
   },

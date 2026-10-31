@@ -1,6 +1,7 @@
 import { QuizQuestion } from '@/types';
+import { EXTRA_QUIZ_QUESTIONS } from './quiz-extra';
 
-export const QUIZ_QUESTIONS: QuizQuestion[] = [
+const CORE_QUIZ_QUESTIONS: QuizQuestion[] = [
   {
     id: 'q1',
     category: 'Swift Basics',
@@ -122,5 +123,10 @@ print(resolvedCity)`,
     explanation: 'У SwiftData для отримання даних використовується макрос `@Query`. Він замінив старий `@FetchRequest` з CoreData.',
     difficulty: 'hard'
   }
+];
+
+export const QUIZ_QUESTIONS: QuizQuestion[] = [
+  ...CORE_QUIZ_QUESTIONS,
+  ...EXTRA_QUIZ_QUESTIONS,
 ];
 

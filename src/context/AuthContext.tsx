@@ -1,298 +1,249 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { UserProfile } from '@/types';
+import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import type { UserProfile } from '@/types';
 import { getUserProgress, saveUserProgress } from '@/lib/storage';
 import { auth, googleProvider, isFirebaseConfigured } from '@/lib/firebase';
-import { onAuthStateChanged, signInWithPopup, signOut, User as FirebaseUser } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  getAdditionalUserInfo,
+  onAuthStateChanged,
+  reload,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  updateProfile as updateFirebaseProfile,
+  type User as FirebaseUser,
+} from 'firebase/auth';
 import { useLocale } from '@/i18n/LocaleContext';
 import { t } from '@/i18n/ui';
+
+type AuthModalTab = 'login' | 'signup' | 'verify';
 
 interface AuthContextType {
   user: UserProfile | null;
   isLoading: boolean;
   isFirebaseReady: boolean;
   isAuthModalOpen: boolean;
-  authModalTab: 'login' | 'signup' | 'verify';
-  lastGeneratedCode: string | null;
-  openAuthModal: (tab?: 'login' | 'signup' | 'verify') => void;
+  authModalTab: AuthModalTab;
+  openAuthModal: (tab?: AuthModalTab) => void;
   closeAuthModal: () => void;
   loginWithGoogle: () => Promise<void>;
-  loginWithEmail: (email: string, name?: string) => Promise<{ code: string }>;
-  verifyEmail: (code: string) => Promise<boolean>;
-  resendVerificationCode: () => Promise<string>;
+  loginWithEmail: (email: string, password: string, name?: string, isSignUp?: boolean) => Promise<void>;
+  confirmEmailVerification: () => Promise<boolean>;
+  resendEmailVerification: () => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
   updateProfile: (data: Partial<UserProfile>) => void;
   logout: () => Promise<void>;
 }
 
 const AUTH_STORAGE_KEY = 'swiftlab_auth_user_v1';
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+function toUserProfile(fbUser: FirebaseUser, previous: Partial<UserProfile> | null, locale: 'uk' | 'en'): UserProfile {
+  const isGoogle = fbUser.providerData.some((provider) => provider.providerId === 'google.com');
+  const isVerified = fbUser.emailVerified || isGoogle;
+  const email = fbUser.email || '';
+
+  return {
+    id: fbUser.uid,
+    name: fbUser.displayName || previous?.name || email.split('@')[0] || t('Розробник', locale),
+    email,
+    avatar: fbUser.photoURL || previous?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}`,
+    provider: isGoogle ? 'google' : 'email',
+    isVerified,
+    verifiedAt: isVerified ? previous?.verifiedAt || new Date().toISOString() : undefined,
+    joinedAt: previous?.joinedAt || new Date().toISOString().split('T')[0],
+    role: previous?.role || (locale === 'en' ? 'iOS course student' : 'Студент курсу iOS'),
+    bio: previous?.bio || (locale === 'en'
+      ? 'Beginner in Apple ecosystem mobile development.'
+      : 'Початківець у світі мобільної розробки під екосистему Apple.'),
+    goal: previous?.goal || 'own_app',
+    githubUrl: previous?.githubUrl,
+  };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { locale } = useLocale();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalTab, setAuthModalTab] = useState<'login' | 'signup' | 'verify'>('login');
-  const [lastGeneratedCode, setLastGeneratedCode] = useState<string | null>(null);
+  const [authModalTab, setAuthModalTab] = useState<AuthModalTab>('login');
 
-  // Sync state to storage
   const persistUser = (newUser: UserProfile | null) => {
     setUser(newUser);
-    if (newUser) {
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newUser));
-      window.dispatchEvent(new Event('swiftlab_auth_change'));
-    } else {
-      localStorage.removeItem(AUTH_STORAGE_KEY);
-      window.dispatchEvent(new Event('swiftlab_auth_change'));
-    }
+    if (newUser) localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newUser));
+    else localStorage.removeItem(AUTH_STORAGE_KEY);
+    window.dispatchEvent(new Event('swiftlab_auth_change'));
   };
 
-  // Listen to Firebase Auth state change
   useEffect(() => {
-    // 1. Initial load from localStorage (for offline/instant render)
     try {
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-      if (stored) {
-        setUser(JSON.parse(stored));
-      }
-    } catch (e) {
-      console.error('Failed to load user from localStorage', e);
+      if (stored) setUser(JSON.parse(stored));
+    } catch (error) {
+      console.error('Failed to load user from localStorage', error);
     } finally {
       setIsLoading(false);
     }
 
-    // 2. If Firebase is configured, subscribe to real Firebase Auth listener
-    if (isFirebaseConfigured && auth) {
-      const unsubscribe = onAuthStateChanged(auth, (fbUser: FirebaseUser | null) => {
-        if (fbUser) {
-          // Keep existing custom attributes if any
-          let storedProfile: Partial<UserProfile> = {};
-          try {
-            const raw = localStorage.getItem(AUTH_STORAGE_KEY);
-            if (raw) storedProfile = JSON.parse(raw);
-          } catch {}
+    if (!isFirebaseConfigured) return;
 
-          const googleUser: UserProfile = {
-            id: fbUser.uid,
-            name: fbUser.displayName || storedProfile.name || fbUser.email?.split('@')[0] || t('Розробник', locale),
-            email: fbUser.email || '',
-            avatar: fbUser.photoURL || storedProfile.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${fbUser.email}`,
-            provider: 'google',
-            isVerified: true, // Google accounts have verified email
-            verifiedAt: storedProfile.verifiedAt || new Date().toISOString(),
-            joinedAt: storedProfile.joinedAt || new Date().toISOString().split('T')[0],
-            role: storedProfile.role || 'Junior iOS Developer',
-            bio: storedProfile.bio || (locale === 'en' ? 'I am learning Swift 6 and SwiftUI to build my own app for the App Store.' : 'Вивчаю Swift 6 та SwiftUI для створення власного застосунку в App Store.'),
-            goal: storedProfile.goal || 'junior_job',
-            githubUrl: storedProfile.githubUrl,
-          };
+    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+      if (!fbUser) {
+        const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+        if (stored) persistUser(null);
+        return;
+      }
 
-          persistUser(googleUser);
-        } else {
-          // User is signed out from Firebase
-          // Only clear if previous provider was google
-          const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-          if (stored) {
-            try {
-              const parsed = JSON.parse(stored);
-              if (parsed.provider === 'google') {
-                persistUser(null);
-              }
-            } catch {}
-          }
-        }
-      });
+      let previous: Partial<UserProfile> | null = null;
+      try {
+        const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+        if (stored) previous = JSON.parse(stored);
+      } catch {}
+      persistUser(toUserProfile(fbUser, previous, locale));
+    });
 
-      return () => unsubscribe();
-    }
+    return () => unsubscribe();
   }, [locale]);
 
-  const openAuthModal = (tab: 'login' | 'signup' | 'verify' = 'login') => {
+  const openAuthModal = (tab: AuthModalTab = 'login') => {
     setAuthModalTab(tab);
     setIsAuthModalOpen(true);
   };
 
-  const closeAuthModal = () => {
-    setIsAuthModalOpen(false);
+  const closeAuthModal = () => setIsAuthModalOpen(false);
+
+  const ensureFirebaseConfigured = () => {
+    if (!isFirebaseConfigured) {
+      const isRemote = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+      throw new Error(isRemote
+        ? t('Firebase не налаштовано на Vercel! Додайте змінні NEXT_PUBLIC_FIREBASE_* у Vercel Dashboard ➔ Settings ➔ Environment Variables і зробіть Redeploy.', locale)
+        : t('Firebase ще не налаштовано локально. Створіть файл .env.local із параметрами вашого проєкту Firebase (див. .env.example).', locale));
+    }
   };
 
-  // 1. Real Google Login via Firebase Popup
   const loginWithGoogle = async () => {
-    if (!isFirebaseConfigured) {
-      const isVercelOrRemote = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
-      if (isVercelOrRemote) {
-        throw new Error(
-          t('Firebase не налаштовано на Vercel! Додайте змінні NEXT_PUBLIC_FIREBASE_* у Vercel Dashboard ➔ Settings ➔ Environment Variables і зробіть Redeploy.', locale)
-        );
-      }
-      throw new Error(
-        t('Firebase ще не налаштовано локально. Створіть файл .env.local із параметрами вашого проєкту Firebase (див. .env.example).', locale)
-      );
-    }
-
+    ensureFirebaseConfigured();
     setIsLoading(true);
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      const fbUser = result.user;
-
-      const googleUser: UserProfile = {
-        id: fbUser.uid,
-        name: fbUser.displayName || fbUser.email?.split('@')[0] || t('Розробник', locale),
-        email: fbUser.email || '',
-        avatar: fbUser.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${fbUser.email}`,
-        provider: 'google',
-        isVerified: true,
-        verifiedAt: new Date().toISOString(),
-        joinedAt: new Date().toISOString().split('T')[0],
-        role: 'Junior iOS Developer',
-        bio: locale === 'en' ? 'I am learning Swift 6 and SwiftUI to build my own app for the App Store.' : 'Вивчаю Swift 6 та SwiftUI для створення власного застосунку в App Store.',
-        goal: 'junior_job',
-      };
-
-      persistUser(googleUser);
-
-      // Reward bonus XP for verification
-      const progress = getUserProgress();
-      progress.totalXp += 50;
-      saveUserProgress(progress);
-
+      persistUser(toUserProfile(result.user, user?.id === result.user.uid ? user : null, locale));
+      if (getAdditionalUserInfo(result)?.isNewUser) {
+        const progress = getUserProgress();
+        progress.totalXp += 50;
+        saveUserProgress(progress);
+      }
       closeAuthModal();
-    } catch (err: any) {
-      if (err.code === 'auth/popup-closed-by-user') {
+    } catch (error) {
+      const authError = error as { code?: string; message?: string };
+      if (authError.code === 'auth/popup-closed-by-user') {
         throw new Error(t('Вікно входу Google було закрите до завершення авторизації.', locale));
-      } else if (err.code === 'auth/unauthorized-domain') {
-        const currentDomain = typeof window !== 'undefined' ? window.location.hostname : (locale === 'en' ? 'this domain' : 'цей домен');
-        throw new Error(
-          locale === 'en'
-            ? `Domain "${currentDomain}" is not authorized in Firebase Console. Add it under Authentication → Settings → Authorized domains.`
-            : `Домен "${currentDomain}" не авторизовано у Firebase Console! Додайте "${currentDomain}" у Firebase ➔ Authentication ➔ Settings ➔ Authorized Domains.`
-        );
-      } else if (err.code === 'auth/cancelled-popup-request') {
+      }
+      if (authError.code === 'auth/unauthorized-domain') {
+        const domain = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
+        throw new Error(locale === 'en'
+          ? `Domain "${domain}" is not authorized in Firebase Console. Add it under Authentication → Settings → Authorized domains.`
+          : `Домен "${domain}" не авторизовано у Firebase Console! Додайте "${domain}" у Firebase ➔ Authentication ➔ Settings ➔ Authorized Domains.`);
+      }
+      if (authError.code === 'auth/cancelled-popup-request') {
         throw new Error(t('Попередній запит було скасовано.', locale));
+      }
+      throw new Error(authError.message || t('Помилка авторизації через Google.', locale));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginWithEmail = async (email: string, password: string, name?: string, isSignUp = false) => {
+    ensureFirebaseConfigured();
+    setIsLoading(true);
+    try {
+      const credential = isSignUp
+        ? await createUserWithEmailAndPassword(auth, email.trim(), password)
+        : await signInWithEmailAndPassword(auth, email.trim(), password);
+
+      if (isSignUp) {
+        await updateFirebaseProfile(credential.user, { displayName: name?.trim() || email.split('@')[0] });
+        await sendEmailVerification(credential.user);
+      }
+
+      const account = toUserProfile(credential.user, user?.id === credential.user.uid ? user : null, locale);
+      persistUser(account);
+
+      if (isSignUp || !credential.user.emailVerified) {
+        setAuthModalTab('verify');
       } else {
-        throw new Error(err.message || t('Помилка авторизації через Google.', locale));
+        closeAuthModal();
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 2. Email Login with verification OTP code
-  const loginWithEmail = async (email: string, name?: string): Promise<{ code: string }> => {
-    setIsLoading(true);
-    try {
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      setLastGeneratedCode(code);
+  const confirmEmailVerification = async (): Promise<boolean> => {
+    if (!auth.currentUser || !user || auth.currentUser.uid !== user.id) return false;
+    await reload(auth.currentUser);
+    if (!auth.currentUser.emailVerified) return false;
 
-      const existingStored = user && user.email === email ? user : null;
-      const userName = name || email.split('@')[0];
-
-      const emailUser: UserProfile = {
-        id: existingStored?.id || `user_${Date.now()}`,
-        name: existingStored?.name || userName,
-        email: email,
-        avatar:
-          existingStored?.avatar ||
-          `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}`,
-        provider: 'email',
-        isVerified: false,
-        joinedAt: existingStored?.joinedAt || new Date().toISOString().split('T')[0],
-        role: locale === 'en' ? 'iOS course student' : 'Студент курсу iOS',
-        bio: locale === 'en' ? 'Beginner in Apple ecosystem mobile development.' : 'Початківець у світі мобільної розробки під екосистему Apple.',
-        goal: 'own_app',
-        verificationCode: code,
-      };
-
-      persistUser(emailUser);
-      setAuthModalTab('verify');
-      return { code };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 3. Verify Account with OTP
-  const verifyEmail = async (inputCode: string): Promise<boolean> => {
-    if (!user) return false;
-
-    const validCode = user.verificationCode || lastGeneratedCode;
-    const isCodeCorrect = inputCode.trim() === validCode || inputCode.trim() === '777777' || inputCode.trim() === '123456';
-
-    if (isCodeCorrect) {
-      const verifiedUser: UserProfile = {
-        ...user,
-        isVerified: true,
-        verifiedAt: new Date().toISOString(),
-        verificationCode: undefined,
-      };
-
-      persistUser(verifiedUser);
-
-      // Award XP bonus
+    const wasVerified = user.isVerified;
+    const verifiedUser = toUserProfile(auth.currentUser, user, locale);
+    persistUser(verifiedUser);
+    if (!wasVerified) {
       const progress = getUserProgress();
       progress.totalXp += 50;
       saveUserProgress(progress);
-
-      closeAuthModal();
-      return true;
     }
-
-    return false;
+    closeAuthModal();
+    return true;
   };
 
-  // Resend code
-  const resendVerificationCode = async (): Promise<string> => {
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setLastGeneratedCode(code);
-    if (user) {
-      persistUser({
-        ...user,
-        verificationCode: code,
-      });
-    }
-    return code;
+  const resendEmailVerification = async () => {
+    if (!auth.currentUser || auth.currentUser.emailVerified) return;
+    await sendEmailVerification(auth.currentUser);
   };
 
-  // Update profile
+  const sendPasswordReset = async (email: string) => {
+    ensureFirebaseConfigured();
+    await sendPasswordResetEmail(auth, email.trim());
+  };
+
   const updateProfile = (data: Partial<UserProfile>) => {
     if (!user) return;
     const updated = { ...user, ...data };
     persistUser(updated);
   };
 
-  // Logout
   const logout = async () => {
-    if (isFirebaseConfigured && auth) {
+    if (isFirebaseConfigured) {
       try {
         await signOut(auth);
-      } catch (e) {
-        console.error('Firebase signOut error', e);
+      } catch (error) {
+        console.error('Firebase sign-out failed', error);
       }
     }
     persistUser(null);
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        isFirebaseReady: isFirebaseConfigured,
-        isAuthModalOpen,
-        authModalTab,
-        lastGeneratedCode,
-        openAuthModal,
-        closeAuthModal,
-        loginWithGoogle,
-        loginWithEmail,
-        verifyEmail,
-        resendVerificationCode,
-        updateProfile,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user,
+      isLoading,
+      isFirebaseReady: isFirebaseConfigured,
+      isAuthModalOpen,
+      authModalTab,
+      openAuthModal,
+      closeAuthModal,
+      loginWithGoogle,
+      loginWithEmail,
+      confirmEmailVerification,
+      resendEmailVerification,
+      sendPasswordReset,
+      updateProfile,
+      logout,
+    }}>
       {children}
     </AuthContext.Provider>
   );
@@ -300,8 +251,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 }
