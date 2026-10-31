@@ -11,7 +11,7 @@ export const module7Lessons: Lesson[] = [
     estimatedMinutes: 22,
     icon: 'Link',
     content: {
-      realWorldContext: 'У нотатному застосунку користувач має багато нотаток, які належать до одного проєкту. Потрібно зберігати ці зв’язки без зайвого коду.',
+      realWorldContext: 'У нотатнику користувач може створювати багато нотаток, які належать до одного проєкту. Потрібно зберігати ці зв’язки без зайвого коду.',
       detailedTheory: [
         {
           title: 'One‑to‑Many зв’язок',
@@ -82,9 +82,9 @@ class Note: NSManagedObject { @NSManaged var project: Project? }
         }
       ],
       keyTakeaways: ['SwiftData спрощує декларацію зв’язків', '@Relationship підтримує cascade та nullify', 'Inverse‑відношення генерується автоматично'],
-      commonMistakes: ['Не вказати inverse‑відношення, що призводить до розмитаких даних'],
+      commonMistakes: ['Не вказати inverse‑відношення, що може спричинити некоректні зв’язки між моделями'],
       challenge: {
-        task: 'Створіть модель `Author` з багатьма `Article` та реалізуйте Cascade Delete, щоб при видаленні автора видалились його статті.',
+        task: 'Створіть модель `Author` зі зв’язком «один до багатьох» із `Article` та реалізуйте Cascade Delete, щоб видалення автора також видаляло його статті.',
         hint: 'Використайте `@Relationship(deleteRule: .cascade)` у `Author`.',
         solution: `@Model class Author { @Attribute(.unique) var id: UUID = UUID(); var name: String = ""; @Relationship(deleteRule: .cascade, inverse: \\Article.author) var articles: [Article] = [] }
 @Model class Article { var title: String = ""; @Relationship(inverse: \\Author.articles) var author: Author? }`
@@ -139,7 +139,7 @@ struct ProjectsView: View {
     estimatedMinutes: 18,
     icon: 'TestTube',
     content: {
-      realWorldContext: 'Для великих додатків важливо автоматизовано перевіряти, що UI реагує на зміну стану (наприклад, перемикач теми).',
+      realWorldContext: 'Для великих застосунків важливо автоматизовано перевіряти, що UI реагує на зміну стану (наприклад, перемикач теми).',
       detailedTheory: [
         {
           title: 'XCTest Basics for SwiftUI',

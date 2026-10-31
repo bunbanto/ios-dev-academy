@@ -77,7 +77,7 @@ print(resolvedCity)`,
       'CustomToggle(isOn: @isEnabled)'
     ],
     correctAnswer: 1,
-    explanation: 'Символ `$` перед `@State` змінною створює проектовану властивість (Projected Value), яка повертає `Binding<Bool>`.',
+    explanation: 'Символ `$` перед `@State` змінною створює проєктоване значення (Projected Value), яке повертає `Binding<Bool>`.',
     difficulty: 'medium'
   },
   {

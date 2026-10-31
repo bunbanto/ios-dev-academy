@@ -344,7 +344,7 @@ export default function Navbar() {
           <div className="pt-2 border-t border-white/10 flex items-center justify-around text-xs text-neutral-400">
             <div className="flex items-center gap-1.5 text-orange-400">
               <Flame className="w-4 h-4" />
-              <span>{progress?.streakDays ?? 1} {t("дні стрік", locale)}</span>
+              <span>{progress?.streakDays ?? 1} {t("дн. поспіль", locale)}</span>
             </div>
             <span className="text-neutral-700">•</span>
             <div className="flex items-center gap-1.5 text-yellow-400">

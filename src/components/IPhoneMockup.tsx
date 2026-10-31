@@ -44,7 +44,7 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
   const [tasks, setTasks] = useState([
     { id: 1, title: 'Пройти модуль Опціоналів Swift', done: true },
     { id: 2, title: 'Скласти UI на базі VStack та HStack', done: true },
-    { id: 3, title: 'Підключити SwiftData для нотаток', done: false },
+    { id: 3, title: 'Додати SwiftData для нотаток', done: false },
     { id: 4, title: 'Задеплоїти білд у TestFlight', done: false },
   ]);
   const [newTaskInput, setNewTaskInput] = useState('');
@@ -173,7 +173,7 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
                     {cups} {cups === 1 ? t("Чашка кави", locale) : cups >= 2 && cups <= 4 ? t("Чашки кави", locale) : t("Чашок кави", locale)}
                   </h3>
                   <p className="text-xs text-neutral-400 mt-1">
-                    {isHot ? t("🔥 Гаряче американо", locale) : t("❄️ Освіжаючий айс лате", locale)}
+                    {isHot ? t("🔥 Гаряче американо", locale) : t("❄️ Освіжний айс-лате", locale)}
                   </p>
                 </div>
 

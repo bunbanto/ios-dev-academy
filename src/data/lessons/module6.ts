@@ -81,7 +81,7 @@ struct NotesListView: View {
 struct TasksView: View { @Query var tasks: [Task]; var body: some View { List(tasks) { Text($0.title) } } }`
       },
       xcodeLab: {
-        task: 'Створіть простий SwiftUI‑проект, підключіть SwiftData, додайте `Note` модель та відобразіть нотатки у List.',
+        task: 'Створіть простий проєкт SwiftUI, налаштуйте SwiftData, додайте модель `Note` та відобразіть нотатки у List.',
         steps: [
           'Додайте `@Model` клас Note.',
           'Ініціалізуйте `ModelContainer` у `@main` App.',
@@ -196,7 +196,7 @@ extension Settings { static let key = "settings" }
 var settings: Settings { get { try? JSONDecoder().decode(Settings.self, from: data) ?? Settings(isDark: false, fontSize: 14) } set { data = try! JSONEncoder().encode(newValue) } }`
       },
       xcodeLab: {
-        task: 'Створіть налаштування теми та розміру шрифту, які зберігаються у UserDefaults і застосовуються при старті додатку.',
+        task: 'Створіть налаштування теми та розміру шрифту, які зберігаються у UserDefaults і застосовуються при старті застосунку.',
         steps: [
           'Створіть `Settings` struct з `Codable`.',
           'Додайте `@AppStorage` з JSON‑кодуванням.',

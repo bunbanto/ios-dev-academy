@@ -21,7 +21,7 @@ export default function Footer() {
               <span className="font-bold text-white text-base">SwiftLab</span>
             </div>
             <p className="text-xs text-neutral-400 leading-relaxed">
-              {t("Сучасна інтерактивна платформа для вивчення розробки додатків для iPhone, iPad та всієї екосистеми Apple на базі Swift 6 та SwiftUI.", locale)}
+              {t("Сучасна інтерактивна платформа для вивчення розробки застосунків для iPhone, iPad та всієї екосистеми Apple на базі Swift 6 та SwiftUI.", locale)}
             </p>
             <div className="flex items-center gap-2 text-xs text-neutral-500">
               <span>{t("Створено з", locale)}</span>

@@ -64,7 +64,7 @@ export default function RoadmapPage() {
           {locale === 'en' ? 'iOS Developer Roadmap' : t("Дорожня карта iOS Розробника", locale)}
         </h1>
         <p className="text-neutral-400 text-sm leading-relaxed">
-          {locale === 'en' ? 'A structured learning path from Swift fundamentals to building complete SwiftUI apps and publishing them on the App Store. Work through the lessons in order and track your progress.' : t("Структурований план навчання від базових типів Swift до повноцінного створення додатків на SwiftUI та публікації в App Store. Проходьте уроки послідовно та відзначайте свій прогрес.", locale)}
+          {locale === 'en' ? 'A structured learning path from Swift fundamentals to building complete SwiftUI apps and publishing them on the App Store. Work through the lessons in order and track your progress.' : t("Структурований план навчання від базових типів Swift до повноцінного створення застосунків на SwiftUI та публікації в App Store. Проходьте уроки послідовно та відзначайте свій прогрес.", locale)}
         </p>
       </div>
 

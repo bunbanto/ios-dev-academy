@@ -77,7 +77,7 @@ export default function AuthModal() {
       await loginWithEmail(email, name || undefined);
       setResendCooldown(30);
     } catch (e: any) {
-      setError(t(e.message || 'Помилка при відправці запиту. Спробуйте пізніше.', locale));
+      setError(t(e.message || 'Не вдалося надіслати запит. Спробуйте ще раз пізніше.', locale));
     } finally {
       setIsSubmitting(false);
     }
@@ -141,7 +141,7 @@ export default function AuthModal() {
           <p className="text-xs text-neutral-400 max-w-xs mx-auto">
             {mode === 'verify'
               ? t("Підтвердіть вашу електронну адресу для отримання офіційного сертифіката", locale)
-              : t("Зберігайте прогрес у хмарі, відкривайте бейджі та отримуйте сертифікати Apple розробника", locale)}
+              : t("Зберігайте прогрес у хмарі, відкривайте значки та отримуйте сертифікати Apple розробника", locale)}
           </p>
         </div>
 

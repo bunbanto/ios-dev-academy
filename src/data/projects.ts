@@ -4,7 +4,7 @@ export const PORTFOLIO_PROJECTS: ProjectGuide[] = [
   {
     id: 'habit-tracker',
     title: 'HabitPulse — Трекер звичок',
-    subtitle: 'Повноцінний додаток з локальною базою SwiftData, анімаціями та прогрес-барами.',
+    subtitle: 'Повноцінний застосунок з локальною базою SwiftData, анімаціями та індикаторами прогресу.',
     level: 'Junior',
     duration: '3-4 дні',
     technologies: ['SwiftUI', 'SwiftData', 'Observation', 'SF Symbols'],
@@ -31,7 +31,7 @@ class Habit {
       },
       {
         title: 'Крок 2: Головний екран зі списком',
-        description: 'Використайте @Query для отримання списку звичок та побудуйте кастомну карточку з кнопкою чек-іну.',
+        description: 'Використайте @Query для отримання списку звичок та побудуйте кастомну картку з кнопкою чек-іну.',
         code: `struct HabitListView: View {
     @Query(sort: \\Habit.streakCount, order: .reverse) private var habits: [Habit]
     @Environment(\\.modelContext) private var modelContext
@@ -66,7 +66,7 @@ class Habit {
     level: 'Middle',
     duration: '5-6 днів',
     technologies: ['async/await', 'Codable', 'Swift Charts', 'URLSession'],
-    description: 'Розробіть додаток, який підключається до публічного API CoinGecko, відображає курс Bitcoin, Ethereum та інших криптовалют у реальному часі зі спарклайн-графіками.',
+    description: 'Розробіть застосунок, який підключається до публічного API CoinGecko, відображає курс Bitcoin, Ethereum та інших криптовалют у реальному часі зі спарклайн-графіками.',
     steps: [
       {
         title: 'Крок 1: Опис DTO моделі для крипто-монет',

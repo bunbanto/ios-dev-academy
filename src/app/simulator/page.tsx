@@ -117,7 +117,7 @@ export default function SimulatorPage() {
             <div className="text-center mt-3 space-y-1">
               <span className="text-xs font-bold text-white block">iPhone 16 Pro Simulator</span>
               <p className="text-[11px] text-neutral-500">
-                {t("Клікніть на острівець Dynamic Island вгорі або на кнопки всередині екрана", locale)}
+                {t("Натисніть на острівець Dynamic Island вгорі або на кнопки всередині екрана", locale)}
               </p>
             </div>
           </div>
@@ -155,10 +155,10 @@ export default function SimulatorPage() {
               <span>{t("Як запустити цей код на власному iPhone або Mac?", locale)}</span>
             </h4>
             <ol className="space-y-2 text-xs text-neutral-300 list-decimal list-inside leading-relaxed">
-              <li>{t("Відкрийте", locale)} <strong>Xcode</strong> {t("на вашому Mac (безкоштовно з Mac App Store).", locale)}</li>
+              <li>{t("Відкрийте", locale)} <strong>Xcode</strong> {t("на вашому Mac (безплатно в Mac App Store).", locale)}</li>
               <li>{t("Створіть новий проєкт:", locale)} <strong>File → New → Project → iOS App</strong> {t("(оберіть інтерфейс SwiftUI).", locale)}</li>
               <li>{t("Замініть вміст файлу", locale)} <code className="text-ios-blue font-mono">ContentView.swift</code> {t("скопійованим вище кодом.", locale)}</li>
-              <li>{t("Натисніть", locale)} <kbd className="px-1.5 py-0.5 rounded bg-neutral-800 border border-white/10 font-mono">⌘ + R</kbd> {t("для запуску симулятора або підключіть iPhone кабелем!", locale)}</li>
+              <li>{t("Натисніть", locale)} <kbd className="px-1.5 py-0.5 rounded bg-neutral-800 border border-white/10 font-mono">⌘ + R</kbd> {t("для запуску симулятора або під’єднайте iPhone кабелем!", locale)}</li>
             </ol>
           </div>
         </div>

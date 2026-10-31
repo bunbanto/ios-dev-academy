@@ -11,7 +11,7 @@ export const module5Lessons: Lesson[] = [
     estimatedMinutes: 18,
     icon: 'Clock',
     content: {
-      realWorldContext: 'У великому додатку необхідно отримувати дані з бекенду без блокування UI, тому використовується async/await.',
+      realWorldContext: 'У великому застосунку необхідно отримувати дані з бекенду без блокування UI, тому використовується async/await.',
       detailedTheory: [
         {
           title: 'async / await',
@@ -193,7 +193,7 @@ let post = try decoder.decode(Post.self, from: jsonData)`,
     let title = dict["title"] as? String ?? ""
     // ...
 }`,
-          explanation: 'Готовий парсинг вимагає багато boilerplate та схильний до помилок.'
+          explanation: 'Ручний розбір вимагає забагато шаблонного коду й підвищує ризик помилок.'
         },
         good: {
           title: 'Codable',
@@ -206,7 +206,7 @@ let post = try decoder.decode(Post.self, from: jsonData)`,
         title: 'Як працює Decodable',
         points: [
           'Swift генерує init(from decoder: Decoder) під час компіляції.',
-          'Decoder читає ключі, конвертує типи та заповнює структуру.'
+          'Decoder читає ключі, перетворює типи та заповнює структуру.'
         ]
       },
       checkpoints: [

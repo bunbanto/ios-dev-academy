@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             verifiedAt: storedProfile.verifiedAt || new Date().toISOString(),
             joinedAt: storedProfile.joinedAt || new Date().toISOString().split('T')[0],
             role: storedProfile.role || 'Junior iOS Developer',
-            bio: storedProfile.bio || (locale === 'en' ? 'I am learning Swift 6 and SwiftUI to build my own app for the App Store.' : 'Вивчаю Swift 6 та SwiftUI для створення власного додатку в App Store.'),
+            bio: storedProfile.bio || (locale === 'en' ? 'I am learning Swift 6 and SwiftUI to build my own app for the App Store.' : 'Вивчаю Swift 6 та SwiftUI для створення власного застосунку в App Store.'),
             goal: storedProfile.goal || 'junior_job',
             githubUrl: storedProfile.githubUrl,
           };
@@ -147,7 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         verifiedAt: new Date().toISOString(),
         joinedAt: new Date().toISOString().split('T')[0],
         role: 'Junior iOS Developer',
-        bio: locale === 'en' ? 'I am learning Swift 6 and SwiftUI to build my own app for the App Store.' : 'Вивчаю Swift 6 та SwiftUI для створення власного додатку в App Store.',
+        bio: locale === 'en' ? 'I am learning Swift 6 and SwiftUI to build my own app for the App Store.' : 'Вивчаю Swift 6 та SwiftUI для створення власного застосунку в App Store.',
         goal: 'junior_job',
       };
 

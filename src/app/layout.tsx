@@ -23,12 +23,12 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   }
   return {
-    title: 'SwiftLab — Навчання розробки додатків для iPhone (Swift & SwiftUI)',
-    description: 'Інтерактивна платформа для вивчення розробки iOS додатків: симулятор iPhone 16 Pro, живий SwiftUI код, уроки від початківця до Senior, квізи для співбесід та готові портфоліо-проєкти.',
-    keywords: ['iOS development', 'Swift 6', 'SwiftUI', 'iPhone app development', 'SwiftData', 'розробка додатків для iphone', 'курси swift', 'навчання ios'],
+    title: 'SwiftLab — Навчання розробки застосунків для iPhone (Swift & SwiftUI)',
+    description: 'Інтерактивна платформа для вивчення розробки iOS застосунків: симулятор iPhone 16 Pro, живий SwiftUI код, уроки від початківця до Senior, квізи для співбесід та готові портфоліо-проєкти.',
+    keywords: ['iOS development', 'Swift 6', 'SwiftUI', 'iPhone app development', 'SwiftData', 'розробка застосунків для iPhone', 'курси swift', 'навчання ios'],
     authors: [{ name: 'SwiftLab Academy' }],
     openGraph: {
-      title: 'SwiftLab — Навчання розробки додатків для iPhone',
+      title: 'SwiftLab — Навчання розробки застосунків для iPhone',
       description: 'Опануйте мову Swift та SwiftUI за допомогою інтерактивного iPhone симулятора та практичних уроків.',
       type: 'website',
     },

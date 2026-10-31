@@ -155,7 +155,7 @@ export default function HomePage() {
               {/* The Live Interactive Phone */}
               <IPhoneMockup interactiveType={activeInteractiveMode} />
               <p className="text-[11px] text-neutral-400 mt-2 text-center">
-                {t("✨ Клікайте на екран iPhone — кнопки, поля та скрол є повністю інтерактивними!", locale)}
+                {t("✨ Натискайте на екран iPhone — кнопки й поля інтерактивні, а вміст можна прокручувати!", locale)}
               </p>
             </div>
           </div>
@@ -243,7 +243,7 @@ export default function HomePage() {
             </div>
             <h3 className="text-lg font-bold text-white mb-2">{t("Підготовка до оферу", locale)}</h3>
             <p className="text-xs text-neutral-400 leading-relaxed">
-              {t("Тестові питання зі співбесід на Junior/Middle позиції, розбір пасток із опціоналами, витоками памʼяті (ARC) та готове портфоліо додатків.", locale)}
+              {t("Тестові питання зі співбесід на Junior/Middle позиції, розбір пасток із опціоналами, витоками памʼяті (ARC) та готове портфоліо застосунків.", locale)}
             </p>
           </div>
         </div>
@@ -260,7 +260,7 @@ export default function HomePage() {
             href="/roadmap"
             className="text-xs font-semibold text-ios-blue hover:underline flex items-center gap-1"
           >
-            <span>{t("Всі уроки (", locale)}{lessons.length})</span>
+            <span>{t("Усі уроки (", locale)}{lessons.length})</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -307,7 +307,7 @@ export default function HomePage() {
               {t("Перевір свої знання з iOS Розробки", locale)}
             </h3>
             <p className="text-sm text-neutral-300 max-w-xl">
-              {t("Пройдіть бліц-тест із реальних запитань: різниця Struct vs Class, опціонали, [weak self], життєвий цикл SwiftUI та Concurrency.", locale)}
+              {t("Пройдіть бліцтест ііз реальних запитань: різниця Struct vs Class, опціонали, [weak self], життєвий цикл SwiftUI та Concurrency.", locale)}
             </p>
           </div>
 

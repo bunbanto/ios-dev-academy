@@ -537,7 +537,7 @@ export default function LessonDetailPage() {
         <div className="glass-panel p-6 rounded-2xl border border-ios-blue/30 space-y-4">
           <div className="flex items-center gap-2 text-ios-blue text-sm font-bold">
             <Lightbulb className="w-5 h-5" />
-            <span>{t("Практичне мікро-завдання", locale)}</span>
+            <span>{t("Практичне мікрозавдання", locale)}</span>
           </div>
 
           <p className="text-sm text-neutral-200 font-medium leading-relaxed">
@@ -647,7 +647,7 @@ export default function LessonDetailPage() {
             href="/roadmap"
             className="flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all"
           >
-            <span>{t("Всі уроки курсу пройдено!", locale)}</span>
+            <span>{t("Усі уроки курсу пройдено!", locale)}</span>
             <Award className="w-4 h-4" />
           </Link>
         )}

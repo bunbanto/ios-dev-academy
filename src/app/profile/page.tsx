@@ -156,7 +156,7 @@ function ProfileContent() {
             <Zap className="w-5 h-5 text-ios-blue" />
             <h4 className="text-xs font-bold text-white">{t("Хмарна синхронізація", locale)}</h4>
             <p className="text-[11px] text-neutral-400">
-              {t("Ваші бали XP, стрік днів та прогрес уроків надійно зберігаються між пристроями.", locale)}
+              {t("Ваші бали XP, серія навчання та прогрес уроків зберігаються на різних пристроях.", locale)}
             </p>
           </div>
         </div>
@@ -410,7 +410,7 @@ function ProfileContent() {
         {/* Lessons Completed */}
         <div className="glass-card p-5 rounded-2xl border border-white/10 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-neutral-400">{t("Пройдено уроків", locale)}</span>
+            <span className="text-xs font-semibold text-neutral-400">{t("Завершено уроків", locale)}</span>
             <div className="p-2 rounded-xl bg-ios-blue/10 text-ios-blue">
               <BookOpen className="w-4 h-4" />
             </div>
@@ -592,7 +592,7 @@ function ProfileContent() {
               {t("Ваші нагороди та досягнення", locale)}
             </h2>
             <p className="text-xs text-neutral-400">
-              {t("Виконуйте завдання, проходьте уроки та тестуйте знання на симуляторі для розблокування унікальних бейджів розробника.", locale)}
+              {t("Виконуйте завдання, проходьте уроки та тестуйте знання на симуляторі для розблокування унікальних значків розробника.", locale)}
             </p>
           </div>
 
@@ -666,7 +666,7 @@ function ProfileContent() {
                 {t("Іменний сертифікат проходження", locale)}
               </h2>
               <p className="text-xs text-neutral-400">
-                {t("Офіційний сертифікат SwiftLab засвідчує опанування технологічного стеку iOS (Swift 6, SwiftUI, Concurrency, SwiftData).", locale)}
+                {t("Офіційний сертифікат SwiftLab засвідчує опанування технологічного стека iOS (Swift 6, SwiftUI, Concurrency, SwiftData).", locale)}
               </p>
             </div>
 
@@ -718,7 +718,7 @@ function ProfileContent() {
                 {user.name}
               </h2>
               <p className="text-xs text-neutral-300 max-w-lg mx-auto pt-2 leading-relaxed">
-                {t("успішно пройшов програму підготовки розробника iOS додатків під iPhone та опанував роботу з сучасною мовою Swift 6, побудову UI на базі SwiftUI, асинхронні запити URLSession та сховище даних SwiftData.", locale)}
+                {t("успішно завершив програму підготовки розробника iOS-застосунків для iPhone та опанував Swift 6, створення інтерфейсів у SwiftUI, асинхронні запити через URLSession і роботу зі сховищем SwiftData.", locale)}
               </p>
             </div>
 

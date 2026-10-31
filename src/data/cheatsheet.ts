@@ -20,7 +20,7 @@ export const CHEATSHEET_ITEMS: CheatsheetItem[] = [
     category: 'Swift Basics',
     title: 'Nil-Coalescing Operator',
     syntax: 'let value = optional ?? defaultValue',
-    description: 'Повертає значення опціоналу, або дефолтне значення, якщо опціонал містить nil.',
+    description: 'Повертає значення опціоналу або значення за замовчуванням, якщо опціонал містить nil.',
     example: `let savedTheme: String? = nil
 let activeTheme = savedTheme ?? "dark" // "dark"`
   },
