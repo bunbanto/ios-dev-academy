@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getUserProgress, UserProgress } from '@/lib/storage';
-import { LESSONS } from '@/data/lessons';
+import { LESSONS } from '@/data/lessons/index';
 import { computeAchievements } from '@/data/achievements';
 import {
   User,

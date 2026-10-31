@@ -1,3 +1,47 @@
+export interface TheorySection {
+  title: string;
+  paragraphs: string[];
+  callout?: {
+    type: 'tip' | 'warning' | 'info';
+    title?: string;
+    text: string;
+  };
+}
+
+export interface CodeComparison {
+  bad: {
+    title: string;
+    code: string;
+    explanation: string;
+  };
+  good: {
+    title: string;
+    code: string;
+    explanation: string;
+  };
+}
+
+export interface DeepDive {
+  title: string;
+  points: string[];
+  note?: string;
+}
+
+export interface LessonCheckpoint {
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+}
+
+export interface XcodeLab {
+  task: string;
+  steps: string[];
+  code: string;
+  expectedOutput?: string;
+  tips?: string;
+}
+
 export interface Lesson {
   id: string;
   module: number;
@@ -8,9 +52,14 @@ export interface Lesson {
   estimatedMinutes: number;
   icon: string;
   content: {
+    realWorldContext: string;
+    detailedTheory: TheorySection[];
     theory: string[];
     codeSnippet: string;
+    comparisonSnippet: CodeComparison;
     explanation: string[];
+    underTheHood?: DeepDive;
+    checkpoints?: LessonCheckpoint[];
     keyTakeaways: string[];
     commonMistakes?: string[];
     challenge?: {
@@ -18,6 +67,7 @@ export interface Lesson {
       hint: string;
       solution: string;
     };
+    xcodeLab?: XcodeLab;
   };
 }
 

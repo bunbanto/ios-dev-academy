@@ -19,7 +19,7 @@ import {
   Code2
 } from 'lucide-react';
 import IPhoneMockup from '@/components/IPhoneMockup';
-import { LESSONS } from '@/data/lessons';
+import { LESSONS } from '@/data/lessons/index';
 import { QUIZ_QUESTIONS } from '@/data/quiz';
 import { getUserProgress, UserProgress } from '@/lib/storage';
 

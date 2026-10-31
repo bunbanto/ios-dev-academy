@@ -14,7 +14,7 @@ import {
   Circle,
   Award
 } from 'lucide-react';
-import { LESSONS } from '@/data/lessons';
+import { LESSONS } from '@/data/lessons/index';
 import { getUserProgress, UserProgress } from '@/lib/storage';
 
 export default function RoadmapPage() {
