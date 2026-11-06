@@ -3,6 +3,7 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { AuthProvider } from '@/context/AuthContext';
+import { ThemeProvider, type Theme } from '@/context/ThemeContext';
 import AuthModal from '@/components/AuthModal';
 import { cookies } from 'next/headers';
 import { LocaleProvider, type Locale } from '@/i18n/LocaleContext';
@@ -48,18 +49,36 @@ export default function RootLayout({
 }) {
   const savedLocale = cookies().get('swiftlab_locale')?.value;
   const locale: Locale = savedLocale === 'en' ? 'en' : 'uk';
+  const savedTheme = (cookies().get('swiftlab_theme')?.value as Theme) || 'dark';
+
   return (
-    <html lang={locale} className="dark">
-      <body className="min-h-screen flex flex-col bg-[#090a0f] text-neutral-100 antialiased selection:bg-ios-blue selection:text-white">
+    <html lang={locale} className={savedTheme} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var t = localStorage.getItem('swiftlab_theme');
+                if (t === 'light' || t === 'dark') {
+                  document.documentElement.className = t;
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="min-h-screen flex flex-col bg-[#090a0f] text-neutral-100 antialiased selection:bg-ios-blue selection:text-white transition-colors duration-200">
         <LocaleProvider initialLocale={locale}>
-          <AuthProvider>
-            <Navbar />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-            <AuthModal />
-          </AuthProvider>
+          <ThemeProvider initialTheme={savedTheme}>
+            <AuthProvider>
+              <Navbar />
+              <main className="flex-1">
+                {children}
+              </main>
+              <Footer />
+              <AuthModal />
+            </AuthProvider>
+          </ThemeProvider>
         </LocaleProvider>
       </body>
     </html>

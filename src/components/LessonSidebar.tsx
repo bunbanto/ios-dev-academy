@@ -329,7 +329,7 @@ export default function LessonSidebar({
         />
 
         {/* Slide-over panel */}
-        <div className="relative w-80 max-w-[85vw] h-full bg-[#0d1117] border-r border-white/10 p-4 shadow-2xl flex flex-col z-10">
+        <div className="relative w-80 max-w-[85vw] h-full bg-white dark:bg-[#0d1117] border-r border-neutral-200 dark:border-white/10 p-4 shadow-2xl flex flex-col z-10">
           {sidebarContent}
         </div>
       </div>

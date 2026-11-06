@@ -102,7 +102,7 @@ export default function IPhoneMockup({ interactiveType = 'counter', swiftCode = 
   const totalBill = bill + tipAmount;
 
   return (
-    <div className="relative mx-auto flex items-center justify-center p-4">
+    <div className="relative mx-auto flex items-center justify-center p-4 iphone-mockup-hardware">
       {/* Outer Titanium Phone Shell */}
       <div className="relative w-[340px] sm:w-[360px] h-[700px] bg-[#1a1a1c] rounded-[55px] p-3 shadow-2xl ring-1 ring-white/20 shadow-black/80 flex flex-col justify-between">
         {/* Hardware buttons */}

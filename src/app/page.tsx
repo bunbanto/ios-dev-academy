@@ -100,8 +100,8 @@ export default function HomePage() {
                   <div className="text-xs text-neutral-400">{t("Практика на SwiftUI", locale)}</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-emerald-400">Vercel</div>
-                  <div className="text-xs text-neutral-400">{t("Миттєвий деплой", locale)}</div>
+                  <div className="text-2xl font-bold text-emerald-400">Xcode 16</div>
+                  <div className="text-xs text-neutral-400">{t("Сучасний стек iOS 18", locale)}</div>
                 </div>
               </div>
             </div>

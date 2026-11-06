@@ -19,16 +19,20 @@ import {
   ChevronDown,
   Sparkles,
   Trophy,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { getUserProgress, UserProgress } from '@/lib/storage';
 import { useAuth } from '@/context/AuthContext';
 import { useLocale } from '@/i18n/LocaleContext';
+import { useTheme } from '@/context/ThemeContext';
 import { t } from '@/i18n/ui';
 
 export default function Navbar() {
   const pathname = usePathname();
   const { user, openAuthModal, logout } = useAuth();
   const { locale, setLocale } = useLocale();
+  const { theme, toggleTheme } = useTheme();
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -68,7 +72,7 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#0d1117]/90 border-b border-white/10 transition-all">
+    <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/90 dark:bg-[#0d1117]/90 border-b border-neutral-200 dark:border-white/10 transition-all">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
           
@@ -119,6 +123,23 @@ export default function Navbar() {
             >
               {locale === 'uk' ? 'EN' : t("УК", locale)}
             </button>
+
+            {/* Theme Toggle Button */}
+            {mounted && (
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label={theme === 'dark' ? t('Увімкнути світлу тему', locale) : t('Увімкнути темну тему', locale)}
+                title={theme === 'dark' ? t('Світла тема', locale) : t('Темна тема', locale)}
+                className="rounded-full border border-white/10 bg-neutral-900 p-2 text-neutral-200 transition-colors hover:border-ios-blue/50 hover:text-white flex items-center justify-center shrink-0"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="w-3.5 h-3.5 text-amber-400" />
+                ) : (
+                  <Moon className="w-3.5 h-3.5 text-ios-blue" />
+                )}
+              </button>
+            )}
             
             {/* Combined Compact Stats (Streak + XP) */}
             {mounted && (
@@ -176,7 +197,7 @@ export default function Navbar() {
 
                 {/* Dropdown Menu */}
                 {userDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-[#121622] border border-white/10 shadow-2xl p-2 z-50 animate-fadeIn">
+                  <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-[#121622] border border-neutral-200 dark:border-white/10 shadow-2xl p-2 z-50 animate-fadeIn">
                     <div className="p-3 border-b border-white/10 mb-1">
                       <p className="text-xs font-bold text-white truncate">{user.name}</p>
                       <p className="text-[11px] text-neutral-400 truncate">{user.email}</p>
@@ -261,7 +282,7 @@ export default function Navbar() {
 
       {/* Mobile Drawer (visible when burger menu is open) */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-white/10 bg-neutral-950 px-4 pt-3 pb-6 space-y-3 animate-fadeIn">
+        <div className="lg:hidden border-b border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 px-4 pt-3 pb-6 space-y-3 animate-fadeIn shadow-lg">
           
           {/* User Block inside Mobile Menu */}
           {user ? (
@@ -325,6 +346,28 @@ export default function Navbar() {
               );
             })}
           </div>
+
+          {/* Mobile Theme Toggle */}
+          {mounted && (
+            <div className="pt-2 border-t border-white/10">
+              <button
+                onClick={toggleTheme}
+                className="w-full flex items-center justify-between px-4 py-2.5 text-xs text-neutral-300 hover:text-white rounded-xl hover:bg-neutral-900 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  {theme === 'dark' ? (
+                    <Sun className="w-4 h-4 text-amber-400" />
+                  ) : (
+                    <Moon className="w-4 h-4 text-ios-blue" />
+                  )}
+                  <span>{theme === 'dark' ? t("Світла тема", locale) : t("Темна тема", locale)}</span>
+                </div>
+                <span className="text-[10px] uppercase font-bold text-neutral-500">
+                  {theme === 'dark' ? 'Dark' : 'Light'}
+                </span>
+              </button>
+            </div>
+          )}
 
           {/* Log Out button inside Drawer */}
           {user && (

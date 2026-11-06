@@ -151,7 +151,7 @@ export default function SimulatorPage() {
                   <button onClick={() => setEditedCode(currentExample.swiftCode)} className="text-[11px] text-ios-blue hover:text-white">{t("Скинути код", locale)}</button>
                 </div>
               </div>
-              <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#0d1117] shadow-xl my-4">
+              <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#0d1117] shadow-xl my-4 code-editor-dark">
                 <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10">
                   <span className="text-neutral-400 font-mono text-xs">ContentView.swift</span>
                   <span className="text-[11px] text-neutral-500">{editedCode.split('\n').length} рядків</span>

@@ -252,7 +252,7 @@ export default function AuthModal() {
             <button
               onClick={handleGoogleSubmit}
               disabled={isSubmitting}
-              className="w-full py-3.5 px-4 rounded-xl bg-white hover:bg-neutral-100 text-neutral-900 font-semibold text-sm flex items-center justify-center gap-3 transition-all shadow-md hover:shadow-lg active:scale-[0.99] disabled:opacity-60"
+              className="w-full py-3.5 px-4 rounded-xl bg-white hover:bg-neutral-100 text-neutral-900 font-semibold text-sm flex items-center justify-center gap-3 transition-all shadow-md hover:shadow-lg active:scale-[0.99] disabled:opacity-60 border border-neutral-200 dark:border-transparent"
             >
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                 <path

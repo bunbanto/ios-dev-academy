@@ -28,7 +28,7 @@ export default function CodeBlock({ code, language = 'swift', filename }: CodeBl
   const lines = code.trim().split('\n');
 
   return (
-    <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#161b22] shadow-xl my-4 text-xs font-mono">
+    <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#161b22] shadow-xl my-4 text-xs font-mono code-editor-dark">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-[#0d1117] border-b border-white/10">
         <div className="flex items-center gap-2">

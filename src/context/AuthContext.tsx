@@ -118,10 +118,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const ensureFirebaseConfigured = () => {
     if (!isFirebaseConfigured) {
-      const isRemote = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
-      throw new Error(isRemote
-        ? t('Firebase не налаштовано на Vercel! Додайте змінні NEXT_PUBLIC_FIREBASE_* у Vercel Dashboard ➔ Settings ➔ Environment Variables і зробіть Redeploy.', locale)
-        : t('Firebase ще не налаштовано локально. Створіть файл .env.local із параметрами вашого проєкту Firebase (див. .env.example).', locale));
+      throw new Error(
+        t('Службу авторизації ще не налаштовано. Спробуйте пізніше або зверніться до підтримки.', locale)
+      );
     }
   };
 

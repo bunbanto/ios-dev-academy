@@ -198,16 +198,16 @@ export default function LessonDetailPage() {
   return (
     <div className="max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       {/* Mobile Sticky Bar to toggle Course Menu / Sidebar */}
-      <div className="lg:hidden sticky top-16 z-30 mb-6 -mx-4 px-4 py-2.5 bg-[#0d1117]/95 backdrop-blur-md border-b border-white/10 flex items-center justify-between shadow-lg">
+      <div className="lg:hidden sticky top-16 z-30 mb-6 -mx-4 px-4 py-2.5 bg-white/95 dark:bg-[#0d1117]/95 backdrop-blur-md border-b border-neutral-200 dark:border-white/10 flex items-center justify-between shadow-md">
         <button
           onClick={() => setMobileSidebarOpen(true)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-all border border-white/10 active:scale-95"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/15 text-neutral-900 dark:text-white text-xs font-semibold transition-all border border-neutral-200 dark:border-white/10 active:scale-95"
         >
           <BookOpen className="w-3.5 h-3.5 text-ios-blue" />
           <span>{locale === 'en' ? 'Course menu & lessons' : 'Зміст курсу та уроки'}</span>
-          <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />
+          <ChevronRight className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
         </button>
-        <span className="text-[11px] font-medium text-neutral-400 truncate max-w-[170px] text-right">
+        <span className="text-[11px] font-medium text-neutral-600 dark:text-neutral-400 truncate max-w-[170px] text-right">
           {lesson.moduleTitle}
         </span>
       </div>

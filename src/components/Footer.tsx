@@ -9,7 +9,7 @@ import { Apple, Github, Sparkles, Heart } from 'lucide-react';
 export default function Footer() {
   const { locale } = useLocale();
   return (
-    <footer className="border-t border-white/10 bg-neutral-950 text-neutral-400 text-sm mt-24">
+    <footer className="border-t border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 text-neutral-600 dark:text-neutral-400 text-sm mt-24 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
@@ -131,11 +131,11 @@ export default function Footer() {
                 @Observable
               </span>
               <span className="px-2 py-1 rounded bg-neutral-900 border border-white/10 text-neutral-300">
-                Next.js App Router
+                Xcode 16 Ready
               </span>
             </div>
             <p className="mt-4 text-[11px] text-neutral-500">
-              {t("Готово до миттєвого розгортання на Vercel з оптимізованим SSR та швидким завантаженням.", locale)}
+              {t("Інтерактивна навчальна програма для майбутніх iOS розробників з практикою в Xcode та симулятором.", locale)}
             </p>
           </div>
         </div>
@@ -143,9 +143,9 @@ export default function Footer() {
         <div className="mt-12 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 gap-4">
           <p>© {new Date().getFullYear()} {t("SwiftLab Academy. Всі права захищено.", locale)}</p>
           <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1 text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-              Vercel Production Ready
+            <span className="flex items-center gap-1.5 text-emerald-400">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>iOS 18 & Swift 6 Ready</span>
             </span>
           </div>
         </div>

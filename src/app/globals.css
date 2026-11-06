@@ -7,11 +7,24 @@
   --foreground: #ededed;
 }
 
+html.dark {
+  color-scheme: dark;
+  --background: #090a0f;
+  --foreground: #ededed;
+}
+
+html.light {
+  color-scheme: light;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Custom modern scrollbars */
@@ -63,4 +76,335 @@ body {
   animation: fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* ==========================================================================
+   Light Mode Theme - Comprehensive Apple Light Aesthetic
+   ========================================================================== */
 
+html.light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.light .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+html.light .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* Glass Panels & Cards in Light Mode */
+html.light .glass-panel {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+}
+
+html.light .glass-card {
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  box-shadow: 0 2px 10px -1px rgba(0, 0, 0, 0.04);
+}
+
+/* Navigation Header & Footer in Light Mode */
+html.light header {
+  background-color: rgba(255, 255, 255, 0.94) !important;
+  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+}
+
+html.light footer {
+  background-color: #ffffff !important;
+  border-top-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Background utilities in Light Mode */
+html.light :not(.code-editor-dark):not(.iphone-mockup-hardware) > .bg-neutral-900,
+html.light div.bg-neutral-900:not(.code-editor-dark):not(.iphone-mockup-hardware),
+html.light aside div.bg-neutral-900:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+  background-color: #ffffff;
+}
+
+html.light .bg-neutral-950:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+  background-color: #ffffff !important;
+}
+
+html.light .bg-\[\#121622\]:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.09) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light .bg-\[\#0d1117\]:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+  background-color: #ffffff !important;
+}
+
+html.light .bg-neutral-900\/90,
+html.light .bg-neutral-900\/80,
+html.light .bg-neutral-900\/70,
+html.light .bg-neutral-900\/60,
+html.light .bg-neutral-900\/50 {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+html.light :not(.code-editor-dark):not(.iphone-mockup-hardware) > .bg-neutral-800,
+html.light button.bg-neutral-800,
+html.light div.bg-neutral-800:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+  background-color: #f1f5f9;
+}
+
+html.light .bg-neutral-800\/80 {
+  background-color: #f1f5f9;
+}
+
+html.light .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+html.light .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+html.light .bg-white\/15 {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+html.light .bg-white\/20 {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+html.light .bg-white\/\[0\.04\] {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Borders in Light Mode */
+html.light :not(.code-editor-dark):not(.iphone-mockup-hardware) > .border-white\/5,
+html.light .border-white\/5:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+html.light :not(.code-editor-dark):not(.iphone-mockup-hardware) > .border-white\/10,
+html.light .border-white\/10:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+  border-color: rgba(0, 0, 0, 0.09);
+}
+
+html.light :not(.code-editor-dark):not(.iphone-mockup-hardware) > .border-white\/20,
+html.light .border-white\/20:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
+html.light :not(.code-editor-dark):not(.iphone-mockup-hardware) > .border-white\/30,
+html.light .border-white\/30:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+/* High-Contrast Typography in Light Mode */
+html.light h1:not([class*="text-ios-blue"]):not([class*="text-emerald-"]):not([class*="text-orange-"]):not([class*="text-purple-"]),
+html.light h2:not([class*="text-ios-blue"]):not([class*="text-emerald-"]):not([class*="text-orange-"]):not([class*="text-purple-"]),
+html.light h3:not([class*="text-ios-blue"]):not([class*="text-emerald-"]):not([class*="text-orange-"]):not([class*="text-purple-"]),
+html.light h4:not([class*="text-ios-blue"]):not([class*="text-emerald-"]):not([class*="text-orange-"]):not([class*="text-purple-"]),
+html.light h5,
+html.light h6 {
+  color: #0f172a;
+}
+
+html.light :not(.code-editor-dark):not(.iphone-mockup-hardware) > .text-white,
+html.light p.text-white:not(.code-editor-dark):not(.iphone-mockup-hardware),
+html.light span.text-white:not([class*="bg-"]):not(.code-editor-dark):not(.iphone-mockup-hardware),
+html.light div.text-white:not([class*="bg-"]):not(.code-editor-dark):not(.iphone-mockup-hardware) {
+  color: #0f172a;
+}
+
+html.light .text-neutral-400:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+  color: #475569;
+}
+
+html.light .text-neutral-300:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+  color: #334155;
+}
+
+html.light .text-neutral-200:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+  color: #1e293b;
+}
+
+html.light .text-neutral-100:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+  color: #0f172a;
+}
+
+html.light .text-neutral-500:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+  color: #64748b;
+}
+
+/* Enhanced Callouts, Banners & Alerts for Light Mode */
+html.light .bg-emerald-950\/20,
+html.light .bg-emerald-950\/15,
+html.light .bg-emerald-950\/10 {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+}
+
+html.light .bg-amber-950\/20,
+html.light .bg-amber-950\/10 {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+}
+
+html.light .bg-blue-950\/20,
+html.light .bg-blue-950\/10 {
+  background-color: #eff6ff !important;
+  border-color: #bfdbfe !important;
+}
+
+html.light .bg-red-950\/20,
+html.light .bg-red-950\/10 {
+  background-color: #fef2f2 !important;
+  border-color: #fecaca !important;
+}
+
+html.light .bg-cyan-950\/15 {
+  background-color: #f0fdfa !important;
+  border-color: #99f6e4 !important;
+}
+
+/* Accessible High-Contrast Alert Texts in Light Mode */
+html.light .text-emerald-300,
+html.light .text-emerald-400:not([class*="bg-"]) {
+  color: #065f46 !important;
+}
+
+html.light .text-amber-300,
+html.light .text-amber-400:not([class*="bg-"]),
+html.light .text-yellow-300,
+html.light .text-yellow-400:not([class*="bg-"]) {
+  color: #854d0e !important;
+}
+
+html.light .text-blue-300,
+html.light .text-blue-400:not([class*="bg-"]),
+html.light .text-cyan-400:not([class*="bg-"]) {
+  color: #1e40af !important;
+}
+
+html.light .text-purple-300,
+html.light .text-purple-400:not([class*="bg-"]) {
+  color: #6b21a8 !important;
+}
+
+html.light .text-red-300,
+html.light .text-red-400:not([class*="bg-"]) {
+  color: #991b1b !important;
+}
+
+/* Pill badges with deep text */
+html.light .bg-blue-500\/10,
+html.light .bg-ios-blue\/10,
+html.light .bg-ios-blue\/15,
+html.light .bg-ios-blue\/20 {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+html.light .bg-emerald-500\/10,
+html.light .bg-emerald-500\/15,
+html.light .bg-emerald-500\/20 {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+
+html.light .bg-orange-500\/10,
+html.light .bg-orange-500\/15,
+html.light .bg-orange-500\/20,
+html.light .bg-amber-500\/10,
+html.light .bg-amber-500\/15,
+html.light .bg-amber-500\/20 {
+  background-color: #fff7ed;
+  border-color: #fed7aa;
+  color: #c2410c;
+}
+
+html.light .bg-purple-500\/10,
+html.light .bg-purple-500\/15,
+html.light .bg-purple-500\/20 {
+  background-color: #faf5ff;
+  border-color: #e9d5ff;
+  color: #7e22ce;
+}
+
+html.light .bg-yellow-500\/10,
+html.light .bg-yellow-500\/15,
+html.light .bg-yellow-500\/20 {
+  background-color: #fefce8;
+  border-color: #fef08a;
+  color: #a16207;
+}
+
+/* Keep crisp white text on solid buttons, badges & active gradient tabs */
+html.light [class*="bg-ios-blue"],
+html.light [class*="bg-emerald-500"],
+html.light [class*="bg-emerald-600"],
+html.light [class*="bg-blue-600"],
+html.light [class*="bg-orange-500"],
+html.light [class*="bg-purple-600"],
+html.light [class*="bg-gradient-to-"] {
+  color: #ffffff;
+}
+
+html.light [class*="bg-ios-blue"] .text-white,
+html.light [class*="bg-emerald-500"] .text-white,
+html.light [class*="bg-emerald-600"] .text-white,
+html.light [class*="bg-blue-600"] .text-white,
+html.light [class*="bg-orange-500"] .text-white,
+html.light [class*="bg-purple-600"] .text-white,
+html.light [class*="bg-gradient-to-"] .text-white {
+  color: #ffffff !important;
+}
+
+/* Input Fields in Light Mode */
+html.light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+html.light select,
+html.light textarea:not(.code-editor-dark) {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(0, 0, 0, 0.14) !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+html.light input::placeholder,
+html.light textarea:not(.code-editor-dark)::placeholder {
+  color: #64748b !important;
+}
+
+/* Certificate Luxury Parchment in Light Mode */
+html.light [class*="via-\[\#0d101a\]"],
+html.light [class*="from-\[\#141824\]"] {
+  background: linear-gradient(to bottom, #ffffff, #faf9f6, #f5f2ea) !important;
+  border-color: rgba(202, 138, 4, 0.45) !important;
+  box-shadow: 0 10px 30px -5px rgba(202, 138, 4, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  color: #0f172a !important;
+}
+
+html.light [class*="via-\[\#0d101a\]"] h3,
+html.light [class*="from-\[\#141824\]"] h3 {
+  background: linear-gradient(to right, #92400e, #ca8a04, #92400e) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+html.light [class*="via-\[\#0d101a\]"] h2,
+html.light [class*="from-\[\#141824\]"] h2 {
+  color: #0f172a !important;
+  border-bottom-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Code Editor Dark Container Preservation */
+.code-editor-dark {
+  background-color: #0d1117 !important;
+  color: #e2e8f0 !important;
+}
+
+.code-editor-dark * {
+  border-color: rgba(255, 255, 255, 0.1);
+}
