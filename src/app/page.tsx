@@ -1,9 +1,9 @@
-'use client';
-import { useLocale } from '@/i18n/LocaleContext';
-import { t } from '@/i18n/ui';
+"use client";
+import { useLocale } from "@/i18n/LocaleContext";
+import { t } from "@/i18n/ui";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   Sparkles,
   ArrowRight,
@@ -18,19 +18,21 @@ import {
   Flame,
   ChevronRight,
   Layers,
-  Code2
-} from 'lucide-react';
-import IPhoneMockup from '@/components/IPhoneMockup';
-import { LESSONS } from '@/data/lessons/index';
-import { QUIZ_QUESTIONS } from '@/data/quiz';
-import { localizeContent } from '@/i18n/content';
-import { getUserProgress, UserProgress } from '@/lib/storage';
+  Code2,
+} from "lucide-react";
+import IPhoneMockup from "@/components/IPhoneMockup";
+import { LESSONS } from "@/data/lessons/index";
+import { QUIZ_QUESTIONS } from "@/data/quiz";
+import { localizeContent } from "@/i18n/content";
+import { getUserProgress, UserProgress } from "@/lib/storage";
 
 export default function HomePage() {
   const { locale } = useLocale();
   const lessons = localizeContent(LESSONS, locale);
   const questions = localizeContent(QUIZ_QUESTIONS, locale);
-  const [activeInteractiveMode, setActiveInteractiveMode] = useState<'counter' | 'profile' | 'todo' | 'biometric'>('counter');
+  const [activeInteractiveMode, setActiveInteractiveMode] = useState<
+    "counter" | "profile" | "todo" | "biometric"
+  >("counter");
   const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
 
   useEffect(() => {
@@ -58,15 +60,22 @@ export default function HomePage() {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.15]">
-                {t("Опануй розробку для", locale)} <br className="hidden sm:inline" />
+                {t("Опануй розробку для", locale)}{" "}
+                <br className="hidden sm:inline" />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-ios-blue via-purple-400 to-pink-500">
                   {t("iPhone та iPad", locale)}
-                </span>{' '}
+                </span>{" "}
                 {t("з нуля", locale)}
               </h1>
 
               <p className="text-neutral-300 text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                {t("Інтерактивна українська платформа для вивчення", locale)} <strong>Swift</strong> {t("та", locale)} <strong>SwiftUI</strong>{t(". Проходьте практичні модулі, пишіть сучасний декларативний код та одразу тестуйте його у вбудованому симуляторі iPhone 16 Pro!", locale)}
+                {t("Інтерактивна українська платформа для вивчення", locale)}{" "}
+                <strong>Swift</strong> {t("та", locale)}{" "}
+                <strong>SwiftUI</strong>
+                {t(
+                  ". Проходьте практичні модулі, пишіть сучасний декларативний код та одразу тестуйте його у вбудованому симуляторі iPhone 16 Pro!",
+                  locale,
+                )}
               </p>
 
               {/* CTA Buttons */}
@@ -93,15 +102,23 @@ export default function HomePage() {
               <div className="grid grid-cols-3 gap-4 pt-6 border-t border-white/10 text-left">
                 <div>
                   <div className="text-2xl font-bold text-white">7+</div>
-                  <div className="text-xs text-neutral-400">{t("Модулів від 0 до Pro", locale)}</div>
+                  <div className="text-xs text-neutral-400">
+                    {t("Модулів від 0 до Pro", locale)}
+                  </div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-ios-blue">100%</div>
-                  <div className="text-xs text-neutral-400">{t("Практика на SwiftUI", locale)}</div>
+                  <div className="text-xs text-neutral-400">
+                    {t("Практика на SwiftUI", locale)}
+                  </div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-emerald-400">Xcode 16</div>
-                  <div className="text-xs text-neutral-400">{t("Сучасний стек iOS 18", locale)}</div>
+                  <div className="text-2xl font-bold text-emerald-400">
+                    Xcode 16
+                  </div>
+                  <div className="text-xs text-neutral-400">
+                    {t("Сучасний стек iOS 18", locale)}
+                  </div>
                 </div>
               </div>
             </div>
@@ -111,41 +128,41 @@ export default function HomePage() {
               {/* Interactive Tabs */}
               <div className="flex items-center gap-1.5 p-1 bg-neutral-900/90 rounded-2xl border border-white/10 mb-4 text-xs">
                 <button
-                  onClick={() => setActiveInteractiveMode('counter')}
+                  onClick={() => setActiveInteractiveMode("counter")}
                   className={`px-3 py-1.5 rounded-xl font-medium transition-all ${
-                    activeInteractiveMode === 'counter'
-                      ? 'bg-ios-blue text-white shadow'
-                      : 'text-neutral-400 hover:text-white'
+                    activeInteractiveMode === "counter"
+                      ? "bg-ios-blue text-white shadow"
+                      : "text-neutral-400 hover:text-white"
                   }`}
                 >
                   {t("Кава (@State)", locale)}
                 </button>
                 <button
-                  onClick={() => setActiveInteractiveMode('profile')}
+                  onClick={() => setActiveInteractiveMode("profile")}
                   className={`px-3 py-1.5 rounded-xl font-medium transition-all ${
-                    activeInteractiveMode === 'profile'
-                      ? 'bg-ios-blue text-white shadow'
-                      : 'text-neutral-400 hover:text-white'
+                    activeInteractiveMode === "profile"
+                      ? "bg-ios-blue text-white shadow"
+                      : "text-neutral-400 hover:text-white"
                   }`}
                 >
                   {t("Картка", locale)}
                 </button>
                 <button
-                  onClick={() => setActiveInteractiveMode('todo')}
+                  onClick={() => setActiveInteractiveMode("todo")}
                   className={`px-3 py-1.5 rounded-xl font-medium transition-all ${
-                    activeInteractiveMode === 'todo'
-                      ? 'bg-ios-blue text-white shadow'
-                      : 'text-neutral-400 hover:text-white'
+                    activeInteractiveMode === "todo"
+                      ? "bg-ios-blue text-white shadow"
+                      : "text-neutral-400 hover:text-white"
                   }`}
                 >
                   {t("Завдання", locale)}
                 </button>
                 <button
-                  onClick={() => setActiveInteractiveMode('biometric')}
+                  onClick={() => setActiveInteractiveMode("biometric")}
                   className={`px-3 py-1.5 rounded-xl font-medium transition-all ${
-                    activeInteractiveMode === 'biometric'
-                      ? 'bg-ios-blue text-white shadow'
-                      : 'text-neutral-400 hover:text-white'
+                    activeInteractiveMode === "biometric"
+                      ? "bg-ios-blue text-white shadow"
+                      : "text-neutral-400 hover:text-white"
                   }`}
                 >
                   Face ID
@@ -155,7 +172,10 @@ export default function HomePage() {
               {/* The Live Interactive Phone */}
               <IPhoneMockup interactiveType={activeInteractiveMode} />
               <p className="text-[11px] text-neutral-400 mt-2 text-center">
-                {t("✨ Натискайте на екран iPhone — кнопки й поля інтерактивні, а вміст можна прокручувати!", locale)}
+                {t(
+                  "✨ Натискайте на екран iPhone — кнопки й поля інтерактивні, а вміст можна прокручувати!",
+                  locale,
+                )}
               </p>
             </div>
           </div>
@@ -171,15 +191,16 @@ export default function HomePage() {
                 {t("Ваш прогрес в курсі", locale)}
               </span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white">
-                {completedCount} {t("з", locale)} {totalLessons} {t("уроків", locale)}
+                {completedCount} {t("з", locale)} {totalLessons}{" "}
+                {t("уроків", locale)}
               </span>
             </div>
             <h3 className="text-lg font-bold text-white">
               {completedCount === 0
                 ? t("Ви ще не розпочали перший урок", locale)
-                : locale === 'en'
-                ? `${progressPercent}% of the curriculum completed`
-                : `Пройдено ${progressPercent}% навчальної програми`}
+                : locale === "en"
+                  ? `${progressPercent}% of the curriculum completed`
+                  : `Пройдено ${progressPercent}% навчальної програми`}
             </h3>
           </div>
 
@@ -191,7 +212,9 @@ export default function HomePage() {
               ></div>
             </div>
             <div className="flex justify-between text-[11px] text-neutral-400">
-              <span>{userProgress?.totalXp || 50} {t("Зароблено XP", locale)}</span>
+              <span>
+                {userProgress?.totalXp || 50} {t("Зароблено XP", locale)}
+              </span>
               <span>{t("Рівень: Junior iOS", locale)}</span>
             </div>
           </div>
@@ -212,7 +235,10 @@ export default function HomePage() {
             {t("Чому саме SwiftLab для вивчення iOS?", locale)}
           </h2>
           <p className="text-neutral-400 text-sm max-w-xl mx-auto">
-            {t("Ми зібрали тільки актуальні практики Apple станом на 2026 рік: жодного застарілого UIKit бойлерплейту, тільки чистий SwiftUI, SwiftData та Concurrency.", locale)}
+            {t(
+              "Ми зібрали тільки актуальні практики Apple станом на 2026 рік: жодного застарілого UIKit бойлерплейту, тільки чистий SwiftUI, SwiftData та Concurrency.",
+              locale,
+            )}
           </p>
         </div>
 
@@ -221,9 +247,14 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-2xl bg-ios-blue/20 text-ios-blue flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <Smartphone className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">{t("Живий iPhone Симулятор", locale)}</h3>
+            <h3 className="text-lg font-bold text-white mb-2">
+              {t("Живий iPhone Симулятор", locale)}
+            </h3>
             <p className="text-xs text-neutral-400 leading-relaxed">
-              {t("Не потрібно чекати завантаження важкого Xcode! Змінюйте параметри та одразу спостерігайте рендеринг у віртуальному iPhone 16 Pro з Dynamic Island.", locale)}
+              {t(
+                "Не потрібно чекати завантаження важкого Xcode! Змінюйте параметри та одразу спостерігайте рендеринг у віртуальному iPhone 16 Pro з Dynamic Island.",
+                locale,
+              )}
             </p>
           </div>
 
@@ -231,9 +262,14 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <Terminal className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">{t("Сучасний стек Swift 6", locale)}</h3>
+            <h3 className="text-lg font-bold text-white mb-2">
+              {t("Сучасний стек Swift 6", locale)}
+            </h3>
             <p className="text-xs text-neutral-400 leading-relaxed">
-              {t("Макроси, @Observable, async/await, SwiftData замість застарілого CoreData. Усе те, що зараз вимагають на співбесідах у провідних IT-компаніях.", locale)}
+              {t(
+                "Макроси, @Observable, async/await, SwiftData замість застарілого CoreData. Усе те, що зараз вимагають на співбесідах у провідних IT-компаніях.",
+                locale,
+              )}
             </p>
           </div>
 
@@ -241,9 +277,14 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <Award className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">{t("Підготовка до оферу", locale)}</h3>
+            <h3 className="text-lg font-bold text-white mb-2">
+              {t("Підготовка до оферу", locale)}
+            </h3>
             <p className="text-xs text-neutral-400 leading-relaxed">
-              {t("Тестові питання зі співбесід на Junior/Middle позиції, розбір пасток із опціоналами, витоками памʼяті (ARC) та готове портфоліо застосунків.", locale)}
+              {t(
+                "Тестові питання зі співбесід на Junior/Middle позиції, розбір пасток із опціоналами, витоками памʼяті (ARC) та готове портфоліо застосунків.",
+                locale,
+              )}
             </p>
           </div>
         </div>
@@ -253,14 +294,21 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-black text-white">{t("Програма навчання", locale)}</h2>
-            <p className="text-xs text-neutral-400">{t("Покроковий шлях від першого рядка коду до App Store", locale)}</p>
+            <h2 className="text-2xl font-black text-white">
+              {t("Програма навчання", locale)}
+            </h2>
+            <p className="text-xs text-neutral-400">
+              {t("Покроковий шлях від першого рядка коду до App Store", locale)}
+            </p>
           </div>
           <Link
             href="/roadmap"
             className="text-xs font-semibold text-ios-blue hover:underline flex items-center gap-1"
           >
-            <span>{t("Усі уроки (", locale)}{lessons.length})</span>
+            <span>
+              {t("Усі уроки (", locale)}
+              {lessons.length})
+            </span>
             <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -278,9 +326,11 @@ export default function HomePage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-[10px] font-semibold text-ios-blue uppercase tracking-wider">
-                    {lesson.moduleTitle.split(':')[0]}
+                    {lesson.moduleTitle.split(":")[0]}
                   </span>
-                  <span className="text-[10px] text-neutral-500">• {lesson.estimatedMinutes} {t("хв", locale)}</span>
+                  <span className="text-[10px] text-neutral-500">
+                    • {lesson.estimatedMinutes} {t("хв", locale)}
+                  </span>
                 </div>
                 <h4 className="text-sm font-bold text-white group-hover:text-ios-blue transition-colors truncate">
                   {lesson.title}
@@ -307,7 +357,10 @@ export default function HomePage() {
               {t("Перевір свої знання з iOS Розробки", locale)}
             </h3>
             <p className="text-sm text-neutral-300 max-w-xl">
-              {t("Пройдіть бліцтест ііз реальних запитань: різниця Struct vs Class, опціонали, [weak self], життєвий цикл SwiftUI та Concurrency.", locale)}
+              {t(
+                "Пройдіть бліцтест із реальних запитань: різниця Struct vs Class, опціонали, [weak self], життєвий цикл SwiftUI та Concurrency.",
+                locale,
+              )}
             </p>
           </div>
 
@@ -315,7 +368,10 @@ export default function HomePage() {
             href="/quiz"
             className="px-8 py-4 rounded-2xl bg-white text-neutral-900 hover:bg-neutral-100 font-bold text-sm shadow-xl hover:scale-105 transition-all whitespace-nowrap flex items-center gap-2"
           >
-            <span>{t("Пройти тест (", locale)}{questions.length} {t("питань)", locale)}</span>
+            <span>
+              {t("Пройти тест (", locale)}
+              {questions.length} {t("питань)", locale)}
+            </span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -333,7 +389,10 @@ export default function HomePage() {
               {t("Отримайте офіційний іменний сертифікат SwiftLab", locale)}
             </h3>
             <p className="text-sm text-neutral-300 leading-relaxed">
-              {t("Увійдіть через Google або Email, підтвердіть профіль, відстежуйте свій рівень XP та завантажуйте персональний сертифікат для резюме та LinkedIn.", locale)}
+              {t(
+                "Увійдіть через Google або Email, підтвердіть профіль, відстежуйте свій рівень XP та завантажуйте персональний сертифікат для резюме та LinkedIn.",
+                locale,
+              )}
             </p>
           </div>
 
@@ -358,4 +417,3 @@ export default function HomePage() {
     </div>
   );
 }
-
