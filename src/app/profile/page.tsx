@@ -603,8 +603,8 @@ function ProfileContent() {
                   key={ach.id}
                   className={`p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-4 ${
                     ach.unlocked
-                      ? 'bg-gradient-to-b from-neutral-900 to-[#121622] border-white/20 shadow-xl'
-                      : 'bg-neutral-950/60 border-white/5 opacity-60'
+                      ? 'achievement-card-unlocked bg-gradient-to-b from-neutral-900 to-[#121622] border-white/20 shadow-xl'
+                      : 'achievement-card-locked bg-neutral-950/60 border-white/5 opacity-60'
                   }`}
                 >
                   <div className="flex items-start justify-between">

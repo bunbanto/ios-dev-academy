@@ -119,23 +119,23 @@ html.light footer {
 }
 
 /* Background utilities in Light Mode */
-html.light :not(.code-editor-dark):not(.iphone-mockup-hardware) > .bg-neutral-900,
-html.light div.bg-neutral-900:not(.code-editor-dark):not(.iphone-mockup-hardware),
-html.light aside div.bg-neutral-900:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+html.light :not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) > .bg-neutral-900,
+html.light div.bg-neutral-900:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light aside div.bg-neutral-900:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   background-color: #ffffff;
 }
 
-html.light .bg-neutral-950:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+html.light .bg-neutral-950:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   background-color: #ffffff !important;
 }
 
-html.light .bg-\[\#121622\]:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+html.light .bg-\[\#121622\]:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   background-color: #ffffff !important;
   border-color: rgba(0, 0, 0, 0.09) !important;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
 }
 
-html.light .bg-\[\#0d1117\]:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+html.light .bg-\[\#0d1117\]:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   background-color: #ffffff !important;
 }
 
@@ -147,9 +147,9 @@ html.light .bg-neutral-900\/50 {
   background-color: rgba(255, 255, 255, 0.95);
 }
 
-html.light :not(.code-editor-dark):not(.iphone-mockup-hardware) > .bg-neutral-800,
+html.light :not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) > .bg-neutral-800,
 html.light button.bg-neutral-800,
-html.light div.bg-neutral-800:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+html.light div.bg-neutral-800:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   background-color: #f1f5f9;
 }
 
@@ -178,23 +178,23 @@ html.light .bg-white\/\[0\.04\] {
 }
 
 /* Borders in Light Mode */
-html.light :not(.code-editor-dark):not(.iphone-mockup-hardware) > .border-white\/5,
-html.light .border-white\/5:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+html.light :not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) > .border-white\/5,
+html.light .border-white\/5:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   border-color: rgba(0, 0, 0, 0.06);
 }
 
-html.light :not(.code-editor-dark):not(.iphone-mockup-hardware) > .border-white\/10,
-html.light .border-white\/10:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+html.light :not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) > .border-white\/10,
+html.light .border-white\/10:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   border-color: rgba(0, 0, 0, 0.09);
 }
 
-html.light :not(.code-editor-dark):not(.iphone-mockup-hardware) > .border-white\/20,
-html.light .border-white\/20:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+html.light :not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) > .border-white\/20,
+html.light .border-white\/20:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   border-color: rgba(0, 0, 0, 0.14);
 }
 
-html.light :not(.code-editor-dark):not(.iphone-mockup-hardware) > .border-white\/30,
-html.light .border-white\/30:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+html.light :not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) > .border-white\/30,
+html.light .border-white\/30:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   border-color: rgba(0, 0, 0, 0.2);
 }
 
@@ -208,31 +208,45 @@ html.light h6 {
   color: #0f172a;
 }
 
-html.light :not(.code-editor-dark):not(.iphone-mockup-hardware) > .text-white,
-html.light p.text-white:not(.code-editor-dark):not(.iphone-mockup-hardware),
-html.light span.text-white:not([class*="bg-"]):not(.code-editor-dark):not(.iphone-mockup-hardware),
-html.light div.text-white:not([class*="bg-"]):not(.code-editor-dark):not(.iphone-mockup-hardware) {
+/* Catch white text at every nesting level, including labels and inline elements. */
+html.light .text-white:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   color: #0f172a;
 }
 
-html.light .text-neutral-400:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+html.light .text-neutral-400:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   color: #475569;
 }
 
-html.light .text-neutral-300:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+html.light .text-neutral-300:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   color: #334155;
 }
 
-html.light .text-neutral-200:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+html.light .text-neutral-200:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   color: #1e293b;
 }
 
-html.light .text-neutral-100:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+html.light .text-neutral-100:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   color: #0f172a;
 }
 
-html.light .text-neutral-500:not(.code-editor-dark):not(.iphone-mockup-hardware) {
+html.light .text-neutral-500:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   color: #64748b;
+}
+
+/* Light gray utilities are too faint on light surfaces. */
+html.light .text-neutral-50:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-neutral-600:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-neutral-700:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-gray-100:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-gray-200:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-gray-300:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-slate-100:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-slate-200:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-slate-300:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-zinc-100:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-zinc-200:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-zinc-300:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
+  color: #334155;
 }
 
 /* Enhanced Callouts, Banners & Alerts for Light Mode */
@@ -267,32 +281,52 @@ html.light .bg-cyan-950\/15 {
 }
 
 /* Accessible High-Contrast Alert Texts in Light Mode */
-html.light .text-emerald-300,
-html.light .text-emerald-400:not([class*="bg-"]) {
+html.light .text-emerald-300:not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-emerald-400:not([class*="bg-"]):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   color: #065f46 !important;
 }
 
-html.light .text-amber-300,
-html.light .text-amber-400:not([class*="bg-"]),
-html.light .text-yellow-300,
-html.light .text-yellow-400:not([class*="bg-"]) {
+html.light .text-amber-300:not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-amber-400:not([class*="bg-"]):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-yellow-300:not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-yellow-400:not([class*="bg-"]):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   color: #854d0e !important;
 }
 
-html.light .text-blue-300,
-html.light .text-blue-400:not([class*="bg-"]),
-html.light .text-cyan-400:not([class*="bg-"]) {
+html.light .text-blue-300:not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-blue-400:not([class*="bg-"]):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-cyan-400:not([class*="bg-"]):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   color: #1e40af !important;
 }
 
-html.light .text-purple-300,
-html.light .text-purple-400:not([class*="bg-"]) {
+html.light .text-purple-300:not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-purple-400:not([class*="bg-"]):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   color: #6b21a8 !important;
 }
 
-html.light .text-red-300,
-html.light .text-red-400:not([class*="bg-"]) {
+html.light .text-red-300:not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-red-400:not([class*="bg-"]):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
   color: #991b1b !important;
+}
+
+html.light .text-blue-100:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
+  color: #1e3a8a !important;
+}
+
+html.light .text-green-300:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-green-400:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
+  color: #166534 !important;
+}
+
+html.light .text-orange-300:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-orange-400:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
+  color: #9a3412 !important;
+}
+
+html.light .text-pink-300:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-pink-400:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *),
+html.light .text-pink-500:not(.code-editor-dark):not(.iphone-mockup-hardware):not(.code-editor-dark *):not(.iphone-mockup-hardware *) {
+  color: #9d174d !important;
 }
 
 /* Pill badges with deep text */
@@ -340,25 +374,46 @@ html.light .bg-yellow-500\/20 {
   color: #a16207;
 }
 
-/* Keep crisp white text on solid buttons, badges & active gradient tabs */
-html.light [class*="bg-ios-blue"],
-html.light [class*="bg-emerald-500"],
-html.light [class*="bg-emerald-600"],
-html.light [class*="bg-blue-600"],
-html.light [class*="bg-orange-500"],
-html.light [class*="bg-purple-600"],
-html.light [class*="bg-gradient-to-"] {
-  color: #ffffff;
+/* Preserve white labels on solid buttons and gradient surfaces. */
+html.light [class~="bg-ios-blue"],
+html.light [class~="bg-emerald-400"],
+html.light [class~="bg-emerald-500"],
+html.light [class~="bg-emerald-600"],
+html.light [class~="bg-blue-600"],
+html.light [class~="bg-orange-500"],
+html.light [class~="bg-orange-600"],
+html.light [class~="bg-amber-600"],
+html.light [class~="bg-purple-600"],
+html.light [class*="bg-gradient-to-"].text-white {
+  color: #ffffff !important;
 }
 
-html.light [class*="bg-ios-blue"] .text-white,
-html.light [class*="bg-emerald-500"] .text-white,
-html.light [class*="bg-emerald-600"] .text-white,
-html.light [class*="bg-blue-600"] .text-white,
-html.light [class*="bg-orange-500"] .text-white,
-html.light [class*="bg-purple-600"] .text-white,
+html.light [class~="bg-ios-blue"] .text-white,
+html.light [class~="bg-emerald-400"] .text-white,
+html.light [class~="bg-emerald-500"] .text-white,
+html.light [class~="bg-emerald-600"] .text-white,
+html.light [class~="bg-blue-600"] .text-white,
+html.light [class~="bg-orange-500"] .text-white,
+html.light [class~="bg-orange-600"] .text-white,
+html.light [class~="bg-amber-600"] .text-white,
+html.light [class~="bg-purple-600"] .text-white,
 html.light [class*="bg-gradient-to-"] .text-white {
   color: #ffffff !important;
+}
+
+/* Achievement cards use dark gradient surfaces in dark mode. */
+html.light .achievement-card-unlocked {
+  background: #ffffff !important;
+  background-image: none !important;
+  border-color: #dbe3ef !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.light .achievement-card-locked {
+  background: #f1f5f9 !important;
+  background-image: none !important;
+  border-color: #e2e8f0 !important;
+  opacity: 1 !important;
 }
 
 /* Input Fields in Light Mode */
