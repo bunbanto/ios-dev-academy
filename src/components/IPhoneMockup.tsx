@@ -2,7 +2,7 @@
 import { useLocale } from '@/i18n/LocaleContext';
 import { t } from '@/i18n/ui';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Wifi,
   Battery,
@@ -24,16 +24,29 @@ import {
 
 interface IPhoneMockupProps {
   interactiveType?: 'counter' | 'profile' | 'todo' | 'weather' | 'tipcalc' | 'biometric';
+  swiftCode?: string;
 }
 
-export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMockupProps) {
+export default function IPhoneMockup({ interactiveType = 'counter', swiftCode = '' }: IPhoneMockupProps) {
   const { locale } = useLocale();
+  // The browser preview is a lightweight SwiftUI teaching mock, not a Swift compiler.
+  const cupsFromCode = Number(swiftCode.match(/cupsCount\s*=\s*(\d+)/)?.[1] ?? 3);
+  const isHotFromCode = swiftCode ? !swiftCode.includes('isHot = false') : true;
+  const billFromCode = Number(swiftCode.match(/billAmount:\s*(?:Double)?\s*=\s*([\d.]+)/)?.[1] ?? 65);
+  const tipFromCode = Number(swiftCode.match(/tipPercentage:\s*(?:Double)?\s*=\s*([\d.]+)/)?.[1] ?? 18);
+  const profileName =
+    swiftCode.match(/Text\("([^"\n]+)"\)\s*\n\s*\.font\(\.headline\)/)?.[1] ??
+    swiftCode.match(/Text\("([A-ZА-ЯҐЄІЇ][^"\n]+)"\)/)?.[1] ??
+    'Анна Шевченко';
+  const weatherCity = swiftCode.match(/selectedCity\s*=\s*"([^"]+)"/)?.[1] ?? 'Київ';
+  const weatherTemp = Number(swiftCode.match(/temperature\s*=\s*(\d+)/)?.[1] ?? 22);
+
   // Island expansion
   const [islandExpanded, setIslandExpanded] = useState(false);
 
   // Counter State
-  const [cups, setCups] = useState(3);
-  const [isHot, setIsHot] = useState(true);
+  const [cups, setCups] = useState(cupsFromCode);
+  const [isHot, setIsHot] = useState(isHotFromCode);
 
   // Profile State
   const [isLiked, setIsLiked] = useState(false);
@@ -50,12 +63,17 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
   const [newTaskInput, setNewTaskInput] = useState('');
 
   // Tip Calculator State
-  const [bill, setBill] = useState(65);
-  const [tipPercent, setTipPercent] = useState(18);
+  const [bill, setBill] = useState(billFromCode);
+  const [tipPercent, setTipPercent] = useState(tipFromCode);
 
   // Biometric State
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+
+  useEffect(() => setCups(cupsFromCode), [cupsFromCode]);
+  useEffect(() => setIsHot(isHotFromCode), [isHotFromCode]);
+  useEffect(() => setBill(billFromCode), [billFromCode]);
+  useEffect(() => setTipPercent(tipFromCode), [tipFromCode]);
 
   const handleScan = () => {
     setIsScanning(true);
@@ -220,7 +238,7 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
                       iOS
                     </div>
                     <div>
-                      <h4 className="text-white font-bold text-base">{t("Олег Мельник", locale)}</h4>
+                      <h4 className="text-white font-bold text-base">{profileName}</h4>
                       <p className="text-white/80 text-xs">Junior iOS Developer</p>
                       <span className="inline-block mt-1 px-2 py-0.5 bg-black/30 backdrop-blur text-white text-[10px] rounded-full font-medium">
                         SwiftUI & SwiftData
@@ -485,13 +503,13 @@ export default function IPhoneMockup({ interactiveType = 'counter' }: IPhoneMock
                 <div className="bg-gradient-to-b from-blue-600 to-sky-400 p-5 rounded-3xl text-white shadow-xl">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="font-bold text-lg">{t("Київ", locale)}</h4>
+                      <h4 className="font-bold text-lg">{weatherCity}</h4>
                       <p className="text-xs text-blue-100">{t("Переважно сонячно", locale)}</p>
                     </div>
                     <span className="text-4xl">☀️</span>
                   </div>
                   <div className="mt-4">
-                    <span className="text-5xl font-light">22°</span>
+                    <span className="text-5xl font-light">{weatherTemp}°</span>
                     <div className="flex gap-2 text-xs text-blue-100 mt-1">
                       <span>{t("Мін: 14°", locale)}</span>
                       <span>{t("Макс: 24°", locale)}</span>

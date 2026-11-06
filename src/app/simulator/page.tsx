@@ -1,7 +1,7 @@
 'use client';
 import { t } from '@/i18n/ui';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Smartphone,
   Code2,
@@ -18,7 +18,6 @@ import {
   ExternalLink
 } from 'lucide-react';
 import IPhoneMockup from '@/components/IPhoneMockup';
-import CodeBlock from '@/components/CodeBlock';
 import { PLAYGROUND_EXAMPLES } from '@/data/playground-examples';
 import { useLocale } from '@/i18n/LocaleContext';
 import { localizeContent } from '@/i18n/content';
@@ -27,14 +26,19 @@ export default function SimulatorPage() {
   const { locale } = useLocale();
   const examples = localizeContent(PLAYGROUND_EXAMPLES, locale);
   const [selectedExampleId, setSelectedExampleId] = useState<string>('counter');
+  const [editedCode, setEditedCode] = useState('');
   const [copiedXcode, setCopiedXcode] = useState(false);
 
   const currentExample =
     examples.find((e) => e.id === selectedExampleId) || examples[0];
 
+  useEffect(() => {
+    setEditedCode(currentExample.swiftCode);
+  }, [currentExample.id, currentExample.swiftCode]);
+
   const handleCopyForXcode = async () => {
     try {
-      await navigator.clipboard.writeText(currentExample.swiftCode);
+      await navigator.clipboard.writeText(editedCode);
       setCopiedXcode(true);
       setTimeout(() => setCopiedXcode(false), 2000);
     } catch (e) {
@@ -113,11 +117,11 @@ export default function SimulatorPage() {
         {/* Left: The Virtual iPhone */}
         <div className="lg:col-span-5 flex flex-col items-center">
           <div className="sticky top-24">
-            <IPhoneMockup interactiveType={currentExample.interactiveType} />
+            <IPhoneMockup key={currentExample.id} interactiveType={currentExample.interactiveType} swiftCode={editedCode} />
             <div className="text-center mt-3 space-y-1">
               <span className="text-xs font-bold text-white block">iPhone 16 Pro Simulator</span>
               <p className="text-[11px] text-neutral-500">
-                {t("Натисніть на острівець Dynamic Island вгорі або на кнопки всередині екрана", locale)}
+                {t("Змініть підтримувані значення у коді — прев’ю оновиться. Кнопки в iPhone також працюють.", locale)}
               </p>
             </div>
           </div>
@@ -136,15 +140,31 @@ export default function SimulatorPage() {
               </p>
             </div>
 
-            {/* Swift Code Snippet */}
+            {/* Editable Swift code */}
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-mono text-neutral-400">
-                  {currentExample.id.charAt(0).toUpperCase() + currentExample.id.slice(1)}View.swift
+                  ContentView.swift
                 </span>
-                <span className="text-[11px] text-neutral-500">SwiftUI + iOS 18</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-[11px] text-neutral-500">SwiftUI · редактор</span>
+                  <button onClick={() => setEditedCode(currentExample.swiftCode)} className="text-[11px] text-ios-blue hover:text-white">{t("Скинути код", locale)}</button>
+                </div>
               </div>
-              <CodeBlock code={currentExample.swiftCode} filename={`${currentExample.id}View.swift`} />
+              <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#0d1117] shadow-xl my-4">
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10">
+                  <span className="text-neutral-400 font-mono text-xs">ContentView.swift</span>
+                  <span className="text-[11px] text-neutral-500">{editedCode.split('\n').length} рядків</span>
+                </div>
+                <textarea
+                  aria-label="Редагувати SwiftUI код"
+                  spellCheck={false}
+                  value={editedCode}
+                  onChange={(event) => setEditedCode(event.target.value)}
+                  className="block w-full min-h-[420px] resize-y bg-[#0d1117] p-4 text-xs leading-6 font-mono text-neutral-200 outline-none focus:ring-1 focus:ring-inset focus:ring-ios-blue whitespace-pre"
+                />
+                <p className="border-t border-white/10 px-4 py-2 text-[11px] text-neutral-500">{t("Код готовий до копіювання: вставте його у ContentView.swift в Xcode і запустіть без додаткових налаштувань.", locale)}</p>
+              </div>
             </div>
           </div>
 
@@ -157,8 +177,8 @@ export default function SimulatorPage() {
             <ol className="space-y-2 text-xs text-neutral-300 list-decimal list-inside leading-relaxed">
               <li>{t("Відкрийте", locale)} <strong>Xcode</strong> {t("на вашому Mac (безплатно в Mac App Store).", locale)}</li>
               <li>{t("Створіть новий проєкт:", locale)} <strong>File → New → Project → iOS App</strong> {t("(оберіть інтерфейс SwiftUI).", locale)}</li>
-              <li>{t("Замініть вміст файлу", locale)} <code className="text-ios-blue font-mono">ContentView.swift</code> {t("скопійованим вище кодом.", locale)}</li>
-              <li>{t("Натисніть", locale)} <kbd className="px-1.5 py-0.5 rounded bg-neutral-800 border border-white/10 font-mono">⌘ + R</kbd> {t("для запуску симулятора або під’єднайте iPhone кабелем!", locale)}</li>
+              <li>{t("Замініть весь вміст файлу", locale)} <code className="text-ios-blue font-mono">ContentView.swift</code> {t("скопійованим вище кодом.", locale)}</li>
+              <li>{t("Натисніть", locale)} <kbd className="px-1.5 py-0.5 rounded bg-neutral-800 border border-white/10 font-mono">⌘ + R</kbd> {t("для запуску або увімкніть Canvas Preview (⌥ + ⌘ + ↩), щоб побачити інтерфейс миттєво!", locale)}</li>
             </ol>
           </div>
         </div>
