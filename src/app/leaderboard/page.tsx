@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { Award, Flame, Medal, Trophy } from 'lucide-react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { getLeaderboard, type LeaderboardEntry } from '@/lib/leaderboard';
@@ -79,7 +80,7 @@ export default function LeaderboardPage() {
                 </span>
                 {entry.avatar ? (
                   // Avatar URLs come from the authenticated player's public leaderboard profile.
-                  <img src={entry.avatar} alt="" className="w-10 h-10 rounded-full object-cover border border-white/10" />
+                  <Image src={entry.avatar} alt="" width={40} height={40} unoptimized className="w-10 h-10 rounded-full object-cover border border-white/10" />
                 ) : (
                   <span className="w-10 h-10 rounded-full bg-ios-blue/20 text-ios-blue flex items-center justify-center font-bold">{entry.displayName.charAt(0).toUpperCase()}</span>
                 )}

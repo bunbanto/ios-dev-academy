@@ -27,12 +27,22 @@ export interface InPageSection {
   icon: React.ComponentType<{ className?: string }>;
 }
 
+export interface LessonSidebarPageItem {
+  id: string;
+  title: string;
+  stepLabel?: string;
+}
+
 interface LessonSidebarProps {
   currentLessonId: string;
   currentLessonModule: number;
   completedLessonIds: string[];
   lessons: Lesson[];
   sections: InPageSection[];
+  pages?: LessonSidebarPageItem[];
+  activePageIndex?: number;
+  onSelectPage?: (index: number) => void;
+  completedPageIndices?: number[];
   isMobileOpen: boolean;
   onCloseMobile: () => void;
 }
@@ -43,6 +53,10 @@ export default function LessonSidebar({
   completedLessonIds,
   lessons,
   sections,
+  pages,
+  activePageIndex = 0,
+  onSelectPage,
+  completedPageIndices = [],
   isMobileOpen,
   onCloseMobile,
 }: LessonSidebarProps) {
@@ -292,27 +306,77 @@ export default function LessonSidebar({
         </div>
       )}
 
-      {/* Tab 2: In This Lesson (Table of Contents Jump Links) */}
+      {/* Tab 2: In This Lesson (Pages and Sections) */}
       {activeTab === 'sections' && (
-        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1.5 pr-1">
-          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider px-2 pt-1 pb-1">
-            {locale === 'en' ? 'Quick navigation' : 'Швидкий перехід по уроку'}
-          </p>
-          {sections.map((section, idx) => {
-            const Icon = section.icon;
-            return (
-              <button
-                key={section.id}
-                onClick={() => handleScrollToSection(section.id)}
-                className="w-full flex items-center gap-2.5 p-2 rounded-xl text-xs text-neutral-300 hover:text-white hover:bg-white/5 text-left transition-colors group"
-              >
-                <div className="w-5 h-5 rounded-lg bg-white/5 group-hover:bg-ios-blue/20 text-neutral-400 group-hover:text-ios-blue flex items-center justify-center shrink-0 transition-colors">
-                  <Icon className="w-3 h-3" />
-                </div>
-                <span className="truncate">{section.title}</span>
-              </button>
-            );
-          })}
+        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-1">
+          {pages && pages.length > 1 && (
+            <div className="space-y-1.5 pb-3 border-b border-white/10">
+              <p className="text-[11px] font-semibold text-ios-blue uppercase tracking-wider px-2 pt-1">
+                {locale === 'en' ? 'Lesson Pages' : 'Сторінки теми'}
+              </p>
+              {pages.map((p, pIdx) => {
+                const isCurrentPage = pIdx === activePageIndex;
+                const isPageDone = completedPageIndices.includes(pIdx);
+                return (
+                  <button
+                    key={p.id || pIdx}
+                    onClick={() => {
+                      if (onSelectPage) onSelectPage(pIdx);
+                      if (isMobileOpen) onCloseMobile();
+                    }}
+                    className={`w-full flex items-center justify-between gap-2 p-2 rounded-xl text-xs text-left transition-all ${
+                      isCurrentPage
+                        ? 'bg-ios-blue text-white font-semibold shadow-md shadow-ios-blue/20'
+                        : isPageDone
+                        ? 'text-neutral-300 hover:text-white hover:bg-white/5'
+                        : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className={`w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-mono font-bold shrink-0 ${
+                          isCurrentPage
+                            ? 'bg-white text-ios-blue'
+                            : isPageDone
+                            ? 'bg-emerald-500/20 text-emerald-400'
+                            : 'bg-white/10 text-neutral-400'
+                        }`}
+                      >
+                        {pIdx + 1}
+                      </span>
+                      <span className="truncate">{p.title}</span>
+                    </div>
+                    {isPageDone && !isCurrentPage && (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider px-2 pt-1 pb-1">
+              {pages && pages.length > 1
+                ? (locale === 'en' ? 'On this step' : 'У цьому кроці')
+                : (locale === 'en' ? 'Quick navigation' : 'Швидкий перехід по уроку')}
+            </p>
+            {sections.map((section) => {
+              const Icon = section.icon;
+              return (
+                <button
+                  key={section.id}
+                  onClick={() => handleScrollToSection(section.id)}
+                  className="w-full flex items-center gap-2.5 p-2 rounded-xl text-xs text-neutral-300 hover:text-white hover:bg-white/5 text-left transition-colors group"
+                >
+                  <div className="w-5 h-5 rounded-lg bg-white/5 group-hover:bg-ios-blue/20 text-neutral-400 group-hover:text-ios-blue flex items-center justify-center shrink-0 transition-colors">
+                    <Icon className="w-3 h-3" />
+                  </div>
+                  <span className="truncate">{section.title}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

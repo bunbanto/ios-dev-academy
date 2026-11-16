@@ -1,5 +1,6 @@
 import type { Locale } from './LocaleContext';
 import translations from '@/data/en-translations.json';
+import { LESSONS_EN_MAP } from '@/data/lessons/en';
 
 const english = translations as Record<string, string>;
 const sourceCodeFields = new Set(['code', 'codeSnippet', 'syntax', 'example', 'solution', 'swiftCode']);
@@ -27,6 +28,10 @@ export function localizeContent<T>(value: T, locale: Locale, parentKey = ''): T 
     return value.map((item) => localizeContent(item, locale, parentKey)) as T;
   }
   if (value && typeof value === 'object') {
+    const candidateId = (value as { id?: unknown }).id;
+    if (typeof candidateId === 'string' && candidateId in LESSONS_EN_MAP) {
+      return LESSONS_EN_MAP[candidateId] as unknown as T;
+    }
     return Object.fromEntries(
       Object.entries(value).map(([key, item]) => [key, localizeContent(item, locale, key)]),
     ) as T;

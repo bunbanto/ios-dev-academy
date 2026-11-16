@@ -3,6 +3,7 @@ import { t } from '@/i18n/ui';
 
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getUserProgress, UserProgress } from '@/lib/storage';
@@ -231,9 +232,12 @@ function ProfileContent() {
           {/* Avatar & User Details */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
             <div className="relative group">
-              <img
+              <Image
                 src={user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.email}`}
                 alt={user.name}
+                width={96}
+                height={96}
+                unoptimized
                 className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl object-cover border-2 border-white/20 shadow-xl"
               />
               {user.isVerified && (

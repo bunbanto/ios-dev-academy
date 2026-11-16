@@ -54,11 +54,17 @@ export default function LessonDetailPage() {
   const [accessCheckedForLesson, setAccessCheckedForLesson] = useState<string | null>(null);
   const [isModuleAccessGranted, setIsModuleAccessGranted] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [activePageIndex, setActivePageIndex] = useState(0);
+  const [completedPageIndices, setCompletedPageIndices] = useState<number[]>([]);
 
   // Checkpoints interactive state: map of checkpoint index -> selected option index
   const [checkpointAnswers, setCheckpointAnswers] = useState<Record<number, number>>({});
 
   const lesson = lessons[lessonIndex];
+  const hasPages = Boolean(lesson?.pages && lesson.pages.length > 0);
+  const pages = lesson?.pages || [];
+  const currentPage = hasPages ? pages[activePageIndex] || pages[0] : null;
+  const currentContent = currentPage ? currentPage.content : lesson?.content;
 
   useEffect(() => {
     if (lessonId) {
@@ -71,43 +77,49 @@ export default function LessonDetailPage() {
       setShowHint(false);
       setShowSolution(false);
       setCheckpointAnswers({});
+      setActivePageIndex(0);
+      setCompletedPageIndices([]);
     }
   }, [lessonId, lesson?.module]);
 
   const inPageSections = useMemo<InPageSection[]>(() => {
-    if (!lesson) return [];
+    if (!currentContent) return [];
     const list: InPageSection[] = [];
-    list.push({ id: 'overview', title: t('Огляд & Мета', locale), icon: Compass });
-    if (lesson.content.detailedTheory && lesson.content.detailedTheory.length > 0) {
+    if (currentContent.realWorldContext) {
+      list.push({ id: 'overview', title: t('Огляд & Мета', locale), icon: Compass });
+    }
+    if (currentContent.detailedTheory && currentContent.detailedTheory.length > 0) {
       list.push({ id: 'theory', title: t('Поглиблена теорія', locale), icon: Sparkles });
-    } else if (lesson.content.theory && lesson.content.theory.length > 0) {
+    } else if (currentContent.theory && currentContent.theory.length > 0) {
       list.push({ id: 'theory', title: t('Теоретична частина', locale), icon: Sparkles });
     }
-    if (lesson.content.comparisonSnippet) {
+    if (currentContent.comparisonSnippet) {
       list.push({ id: 'comparison', title: t('Практика коду: Як треба', locale), icon: ThumbsUp });
     }
-    if (lesson.content.codeSnippet) {
+    if (currentContent.codeSnippet) {
       list.push({ id: 'code-snippet', title: t('Зразок коду Swift', locale), icon: Code2 });
     }
-    if (lesson.content.explanation && lesson.content.explanation.length > 0) {
+    if (currentContent.explanation && currentContent.explanation.length > 0) {
       list.push({ id: 'explanation', title: t('Крок за кроком', locale), icon: List });
     }
-    if (lesson.content.underTheHood) {
+    if (currentContent.underTheHood) {
       list.push({ id: 'under-the-hood', title: t('Під капотом', locale), icon: Cpu });
     }
-    if (lesson.content.checkpoints && lesson.content.checkpoints.length > 0) {
+    if (currentContent.checkpoints && currentContent.checkpoints.length > 0) {
       list.push({ id: 'checkpoints', title: t('Експрес-перевірка', locale), icon: HelpCircle });
     }
-    list.push({ id: 'takeaways', title: t('Висновки та типові помилки', locale), icon: CheckCircle2 });
-    if (lesson.content.xcodeLab) {
+    if ((currentContent.keyTakeaways && currentContent.keyTakeaways.length > 0) || currentContent.commonMistakes) {
+      list.push({ id: 'takeaways', title: t('Висновки та типові помилки', locale), icon: CheckCircle2 });
+    }
+    if (currentContent.xcodeLab) {
       list.push({ id: 'xcode-lab', title: t('Лабораторна в Xcode', locale), icon: Laptop });
     }
-    if (lesson.content.challenge) {
+    if (currentContent.challenge) {
       list.push({ id: 'challenge', title: t('Практичне мікрозавдання', locale), icon: Lightbulb });
     }
     list.push({ id: 'completion', title: t('Завершення уроку (+25 XP)', locale), icon: Flame });
     return list;
-  }, [lesson, locale]);
+  }, [currentContent, locale]);
 
   if (!lesson) {
     return (
@@ -161,6 +173,31 @@ export default function LessonDetailPage() {
   const prevLesson = lessonIndex > 0 ? lessons[lessonIndex - 1] : null;
   const nextLesson = lessonIndex < lessons.length - 1 ? lessons[lessonIndex + 1] : null;
 
+  const handleSelectPage = (index: number) => {
+    setActivePageIndex(index);
+    setShowHint(false);
+    setShowSolution(false);
+    const topEl = document.getElementById('lesson-content-top');
+    if (topEl) {
+      topEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleNextPage = () => {
+    if (hasPages && activePageIndex < pages.length - 1) {
+      setCompletedPageIndices((prev) => Array.from(new Set([...prev, activePageIndex])));
+      handleSelectPage(activePageIndex + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (hasPages && activePageIndex > 0) {
+      handleSelectPage(activePageIndex - 1);
+    }
+  };
+
   const handleComplete = () => {
     markLessonCompleted(lesson.id, 25);
     setIsCompleted(true);
@@ -188,10 +225,10 @@ export default function LessonDetailPage() {
     }));
   };
 
-  const totalCheckpoints = lesson.content.checkpoints?.length || 0;
+  const totalCheckpoints = currentContent?.checkpoints?.length || 0;
   const answeredCheckpointsCount = Object.keys(checkpointAnswers).length;
   const correctCheckpointsCount =
-    lesson.content.checkpoints?.filter(
+    currentContent?.checkpoints?.filter(
       (cp, idx) => checkpointAnswers[idx] === cp.correctAnswer
     ).length || 0;
 
@@ -222,6 +259,10 @@ export default function LessonDetailPage() {
             completedLessonIds={completedLessons}
             lessons={lessons}
             sections={inPageSections}
+            pages={hasPages ? pages.map((p, idx) => ({ id: p.id || `p-${idx}`, title: p.title, stepLabel: p.stepLabel })) : undefined}
+            activePageIndex={activePageIndex}
+            onSelectPage={handleSelectPage}
+            completedPageIndices={completedPageIndices}
             isMobileOpen={false}
             onCloseMobile={() => {}}
           />
@@ -235,13 +276,17 @@ export default function LessonDetailPage() {
             completedLessonIds={completedLessons}
             lessons={lessons}
             sections={inPageSections}
+            pages={hasPages ? pages.map((p, idx) => ({ id: p.id || `p-${idx}`, title: p.title, stepLabel: p.stepLabel })) : undefined}
+            activePageIndex={activePageIndex}
+            onSelectPage={handleSelectPage}
+            completedPageIndices={completedPageIndices}
             isMobileOpen={true}
             onCloseMobile={() => setMobileSidebarOpen(false)}
           />
         )}
 
         {/* Main Lesson Content Area */}
-        <article className="flex-1 min-w-0 max-w-4xl space-y-10">
+        <article id="lesson-content-top" className="flex-1 min-w-0 max-w-4xl space-y-10">
           {/* Top Bar Actions */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-neutral-400">
@@ -301,25 +346,88 @@ export default function LessonDetailPage() {
               {lesson.title}
             </h1>
             <p className="text-neutral-400 text-sm sm:text-base leading-relaxed">
-              {lesson.description}
+              {currentPage?.description || lesson.description}
             </p>
           </div>
 
+          {/* Multi-page Topic Stepper Header */}
+          {hasPages && (
+            <div className="space-y-3 p-4 sm:p-5 rounded-2xl bg-neutral-900/90 border border-white/10 shadow-xl backdrop-blur-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-md bg-ios-blue text-white text-[11px] font-mono font-bold shadow-sm">
+                    {locale === 'en' ? 'Step' : 'Крок'} {activePageIndex + 1} / {pages.length}
+                  </span>
+                  <span className="text-white font-bold text-sm sm:text-base">
+                    {currentPage?.title}
+                  </span>
+                </div>
+                <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  {Math.round(((activePageIndex + 1) / pages.length) * 100)}% {locale === 'en' ? 'position' : 'позиція'}
+                </span>
+              </div>
+
+              {/* Stepper Step Tabs */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 pt-1">
+                {pages.map((p, idx) => {
+                  const isCurrent = idx === activePageIndex;
+                  const isDone = completedPageIndices.includes(idx);
+                  return (
+                    <button
+                      key={p.id || idx}
+                      onClick={() => handleSelectPage(idx)}
+                      className={`flex items-center gap-2 p-2 sm:p-2.5 rounded-xl text-left border transition-all text-xs ${
+                        isCurrent
+                          ? 'bg-ios-blue text-white border-ios-blue/40 shadow-lg shadow-ios-blue/20 font-bold scale-[1.02]'
+                          : isDone
+                          ? 'bg-white/[0.04] text-neutral-200 border-emerald-500/30 hover:border-emerald-500/60'
+                          : 'bg-white/[0.02] text-neutral-400 border-white/5 hover:border-white/15 hover:text-white'
+                      }`}
+                    >
+                      <span
+                        className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                          isCurrent
+                            ? 'bg-white text-ios-blue'
+                            : isDone
+                            ? 'bg-emerald-500/20 text-emerald-400'
+                            : 'bg-white/10 text-neutral-400'
+                        }`}
+                      >
+                        {idx + 1}
+                      </span>
+                      <span className="truncate text-[11px] leading-tight">
+                        {p.stepLabel || p.title}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-ios-blue via-cyan-400 to-emerald-400 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.round(((activePageIndex + 1) / pages.length) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Real-World Context Section */}
-          {lesson.content.realWorldContext && (
+          {currentContent?.realWorldContext && (
             <div className="p-5 rounded-2xl bg-gradient-to-r from-ios-blue/15 via-blue-900/10 to-transparent border border-ios-blue/30 space-y-2">
               <div className="flex items-center gap-2 text-ios-blue text-xs font-bold tracking-wide uppercase">
                 <Compass className="w-4 h-4" />
                 <span>{t("Реальний контекст в iOS індустрії", locale)}</span>
               </div>
               <p className="text-sm text-neutral-200 leading-relaxed font-normal">
-                {lesson.content.realWorldContext}
+                {currentContent.realWorldContext}
               </p>
             </div>
           )}
 
           {/* Detailed Theory Sections */}
-          {lesson.content.detailedTheory && lesson.content.detailedTheory.length > 0 ? (
+          {currentContent?.detailedTheory && currentContent.detailedTheory.length > 0 ? (
             <div id="theory" className="space-y-8 scroll-mt-24">
               <div className="flex items-center gap-2 text-white">
                 <Sparkles className="w-5 h-5 text-ios-blue" />
@@ -329,7 +437,7 @@ export default function LessonDetailPage() {
               </div>
 
               <div className="space-y-6">
-                {lesson.content.detailedTheory.map((section, sIdx) => (
+                {currentContent.detailedTheory.map((section, sIdx) => (
                   <div
                     key={sIdx}
                     className="glass-panel p-6 rounded-2xl border border-white/10 space-y-4"
@@ -377,7 +485,7 @@ export default function LessonDetailPage() {
                 ))}
               </div>
             </div>
-          ) : (
+          ) : currentContent?.theory && currentContent.theory.length > 0 ? (
             /* Fallback Theory */
             <div id="theory" className="space-y-4 scroll-mt-24">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -385,15 +493,15 @@ export default function LessonDetailPage() {
                 <span>{t("Теоретична частина", locale)}</span>
               </h2>
               <div className="glass-panel p-6 rounded-2xl space-y-3 border border-white/10 text-neutral-300 text-sm leading-relaxed">
-                {lesson.content.theory.map((para, i) => (
+                {currentContent.theory.map((para, i) => (
                   <p key={i}>{para}</p>
                 ))}
               </div>
             </div>
-          )}
+          ) : null}
 
           {/* Code Comparison (Bad vs Good practice) */}
-          {lesson.content.comparisonSnippet && (
+          {currentContent?.comparisonSnippet && (
             <div id="comparison" className="space-y-4 scroll-mt-24">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -430,22 +538,22 @@ export default function LessonDetailPage() {
               {comparisonTab === 'good' ? (
                 <div className="space-y-2">
                   <div className="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-500/30 text-xs text-emerald-300 font-medium">
-                    ✅ <strong>{t("Правильно (", locale)}{lesson.content.comparisonSnippet.good.title}):</strong>{' '}
-                    {lesson.content.comparisonSnippet.good.explanation}
+                    ✅ <strong>{t("Правильно (", locale)}{currentContent.comparisonSnippet.good.title}):</strong>{' '}
+                    {currentContent.comparisonSnippet.good.explanation}
                   </div>
                   <CodeBlock
-                    code={lesson.content.comparisonSnippet.good.code}
+                    code={currentContent.comparisonSnippet.good.code}
                     filename="BestPractice.swift"
                   />
                 </div>
               ) : (
                 <div className="space-y-2">
                   <div className="p-3.5 rounded-xl bg-red-950/20 border border-red-500/30 text-xs text-red-300 font-medium">
-                    ❌ <strong>{t("Антипатерн (", locale)}{lesson.content.comparisonSnippet.bad.title}):</strong>{' '}
-                    {lesson.content.comparisonSnippet.bad.explanation}
+                    ❌ <strong>{t("Антипатерн (", locale)}{currentContent.comparisonSnippet.bad.title}):</strong>{' '}
+                    {currentContent.comparisonSnippet.bad.explanation}
                   </div>
                   <CodeBlock
-                    code={lesson.content.comparisonSnippet.bad.code}
+                    code={currentContent.comparisonSnippet.bad.code}
                     filename="AntiPattern.swift"
                   />
                 </div>
@@ -454,42 +562,46 @@ export default function LessonDetailPage() {
           )}
 
           {/* Main Code Snippet */}
-          <div id="code-snippet" className="space-y-4 scroll-mt-24">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <span>{t("Повний зразок коду на Swift", locale)}</span>
-              </h2>
-              <span className="text-xs text-neutral-500">{t("Готово для вставки в Xcode", locale)}</span>
-            </div>
+          {currentContent?.codeSnippet && (
+            <div id="code-snippet" className="space-y-4 scroll-mt-24">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <span>{t("Повний зразок коду на Swift", locale)}</span>
+                </h2>
+                <span className="text-xs text-neutral-500">{t("Готово для вставки в Xcode", locale)}</span>
+              </div>
 
-            <CodeBlock code={lesson.content.codeSnippet} filename={`${lesson.id}.swift`} />
-          </div>
+              <CodeBlock code={currentContent.codeSnippet} filename={`${lesson.id}.swift`} />
+            </div>
+          )}
 
           {/* Step-by-Step Code Explanation */}
-          <div id="explanation" className="space-y-4 scroll-mt-24">
-            <h2 className="text-xl font-bold text-white">{t("Як цей код працює крок за кроком", locale)}</h2>
-            <div className="space-y-2 text-sm text-neutral-300">
-              {lesson.content.explanation.map((item, i) => (
-                <div key={i} className="flex items-start gap-3 glass-card p-3.5 rounded-xl border border-white/5">
-                  <span className="w-5 h-5 rounded-full bg-ios-blue/20 text-ios-blue font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
-                    {i + 1}
-                  </span>
-                  <p className="flex-1 leading-relaxed">{item}</p>
-                </div>
-              ))}
+          {currentContent?.explanation && currentContent.explanation.length > 0 && (
+            <div id="explanation" className="space-y-4 scroll-mt-24">
+              <h2 className="text-xl font-bold text-white">{t("Як цей код працює крок за кроком", locale)}</h2>
+              <div className="space-y-2 text-sm text-neutral-300">
+                {currentContent.explanation.map((item, i) => (
+                  <div key={i} className="flex items-start gap-3 glass-card p-3.5 rounded-xl border border-white/5">
+                    <span className="w-5 h-5 rounded-full bg-ios-blue/20 text-ios-blue font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+                      {i + 1}
+                    </span>
+                    <p className="flex-1 leading-relaxed">{item}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Under The Hood / Deep Dive Card */}
-          {lesson.content.underTheHood && (
+          {currentContent?.underTheHood && (
             <div id="under-the-hood" className="glass-panel p-6 rounded-2xl border border-cyan-500/25 bg-gradient-to-br from-cyan-950/15 via-transparent to-transparent space-y-4 scroll-mt-24">
               <div className="flex items-center gap-2.5 text-cyan-400 font-bold text-base">
                 <Cpu className="w-5 h-5" />
-                <span>{t("Під капотом:", locale)} {lesson.content.underTheHood.title}</span>
+                <span>{t("Під капотом:", locale)} {currentContent.underTheHood.title}</span>
               </div>
 
               <div className="space-y-2.5 text-xs text-neutral-300">
-                {lesson.content.underTheHood.points.map((pt, pIdx) => (
+                {currentContent.underTheHood.points.map((pt, pIdx) => (
                   <div key={pIdx} className="flex items-start gap-2.5">
                     <span className="text-cyan-400 mt-0.5">•</span>
                     <p className="leading-relaxed flex-1">{pt}</p>
@@ -497,16 +609,16 @@ export default function LessonDetailPage() {
                 ))}
               </div>
 
-              {lesson.content.underTheHood.note && (
+              {currentContent.underTheHood.note && (
                 <div className="pt-2 border-t border-cyan-500/10 text-xs text-neutral-400 italic">
-                  📌 {lesson.content.underTheHood.note}
+                  📌 {currentContent.underTheHood.note}
                 </div>
               )}
             </div>
           )}
 
           {/* Interactive Checkpoints (Mini-Quiz inside the lesson) */}
-          {lesson.content.checkpoints && lesson.content.checkpoints.length > 0 && (
+          {currentContent?.checkpoints && currentContent.checkpoints.length > 0 && (
             <div id="checkpoints" className="space-y-5 scroll-mt-24">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-white">
@@ -521,7 +633,7 @@ export default function LessonDetailPage() {
               </div>
 
               <div className="space-y-4">
-                {lesson.content.checkpoints.map((cp, qIdx) => {
+                {currentContent.checkpoints.map((cp, qIdx) => {
                   const selectedAnswer = checkpointAnswers[qIdx];
                   const isAnswered = selectedAnswer !== undefined;
                   const isCorrect = isAnswered && selectedAnswer === cp.correctAnswer;
@@ -596,53 +708,57 @@ export default function LessonDetailPage() {
           )}
 
           {/* Key Takeaways & Common Mistakes Grid */}
-          <div id="takeaways" className="grid grid-cols-1 md:grid-cols-2 gap-6 scroll-mt-24">
-            {/* Key Takeaways */}
-            <div className="glass-panel p-5 rounded-2xl border border-emerald-500/20 bg-emerald-950/10 space-y-3">
-              <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>{t("Головні висновки уроку", locale)}</span>
-              </h3>
-              <ul className="space-y-2 text-xs text-neutral-300">
-                {lesson.content.keyTakeaways.map((item, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
-                    <span className="leading-relaxed">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {((currentContent?.keyTakeaways && currentContent.keyTakeaways.length > 0) || currentContent?.commonMistakes) && (
+            <div id="takeaways" className="grid grid-cols-1 md:grid-cols-2 gap-6 scroll-mt-24">
+              {/* Key Takeaways */}
+              {currentContent?.keyTakeaways && currentContent.keyTakeaways.length > 0 && (
+                <div className="glass-panel p-5 rounded-2xl border border-emerald-500/20 bg-emerald-950/10 space-y-3">
+                  <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>{t("Головні висновки уроку", locale)}</span>
+                  </h3>
+                  <ul className="space-y-2 text-xs text-neutral-300">
+                    {currentContent.keyTakeaways.map((item, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-emerald-400 mt-0.5 font-bold">✓</span>
+                        <span className="leading-relaxed">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-            {/* Common Mistakes */}
-            {lesson.content.commonMistakes && (
-              <div className="glass-panel p-5 rounded-2xl border border-amber-500/20 bg-amber-950/10 space-y-3">
-                <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  <span>{t("Типові помилки початківців", locale)}</span>
-                </h3>
-                <ul className="space-y-2 text-xs text-neutral-300">
-                  {lesson.content.commonMistakes.map((item, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span className="text-amber-400 mt-0.5 font-bold">✕</span>
-                      <span className="leading-relaxed">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
+              {/* Common Mistakes */}
+              {currentContent?.commonMistakes && (
+                <div className="glass-panel p-5 rounded-2xl border border-amber-500/20 bg-amber-950/10 space-y-3">
+                  <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span>{t("Типові помилки початківців", locale)}</span>
+                  </h3>
+                  <ul className="space-y-2 text-xs text-neutral-300">
+                    {currentContent.commonMistakes.map((item, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-amber-400 mt-0.5 font-bold">✕</span>
+                        <span className="leading-relaxed">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Xcode Lab Section (if available) */}
-          {lesson.content.xcodeLab && (
+          {currentContent?.xcodeLab && (
             <div id="xcode-lab" className="glass-panel p-6 rounded-2xl border border-ios-blue/40 bg-blue-950/10 space-y-4 scroll-mt-24">
               <div className="flex items-center gap-2 text-ios-blue text-sm font-bold">
                 <Laptop className="w-5 h-5" />
-                <span>{t("Лабораторна робота в Xcode:", locale)} {lesson.content.xcodeLab.task}</span>
+                <span>{t("Лабораторна робота в Xcode:", locale)} {currentContent.xcodeLab.task}</span>
               </div>
 
               <div className="space-y-2 text-xs text-neutral-300">
                 <h4 className="font-semibold text-white">{t("Покрокова інструкція:", locale)}</h4>
-                {lesson.content.xcodeLab.steps.map((st, sIdx) => (
+                {currentContent.xcodeLab.steps.map((st, sIdx) => (
                   <div key={sIdx} className="flex items-start gap-2.5">
                     <span className="w-4 h-4 rounded-full bg-ios-blue/20 text-ios-blue font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
                       {sIdx + 1}
@@ -653,26 +769,26 @@ export default function LessonDetailPage() {
               </div>
 
               <div className="pt-2">
-                <CodeBlock code={lesson.content.xcodeLab.code} filename="XcodeLab.swift" />
+                <CodeBlock code={currentContent.xcodeLab.code} filename="XcodeLab.swift" />
               </div>
 
-              {lesson.content.xcodeLab.expectedOutput && (
+              {currentContent.xcodeLab.expectedOutput && (
                 <div className="p-3 bg-neutral-900 rounded-xl text-xs text-neutral-300 border border-white/5 font-mono">
                   <span className="text-neutral-500 block mb-1">{t("Очікуваний вивід у консолі Xcode:", locale)}</span>
-                  <span className="text-emerald-400">{lesson.content.xcodeLab.expectedOutput}</span>
+                  <span className="text-emerald-400">{currentContent.xcodeLab.expectedOutput}</span>
                 </div>
               )}
 
-              {lesson.content.xcodeLab.tips && (
+              {currentContent.xcodeLab.tips && (
                 <p className="text-xs text-neutral-400 italic">
-                  {t("💡 Порада:", locale)} {lesson.content.xcodeLab.tips}
+                  {t("💡 Порада:", locale)} {currentContent.xcodeLab.tips}
                 </p>
               )}
             </div>
           )}
 
           {/* Mini Practical Challenge */}
-          {lesson.content.challenge && (
+          {currentContent?.challenge && (
             <div id="challenge" className="glass-panel p-6 rounded-2xl border border-ios-blue/30 space-y-4 scroll-mt-24">
               <div className="flex items-center gap-2 text-ios-blue text-sm font-bold">
                 <Lightbulb className="w-5 h-5" />
@@ -680,7 +796,7 @@ export default function LessonDetailPage() {
               </div>
 
               <p className="text-sm text-neutral-200 font-medium leading-relaxed">
-                {lesson.content.challenge.task}
+                {currentContent.challenge.task}
               </p>
 
               <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -700,54 +816,87 @@ export default function LessonDetailPage() {
 
               {showHint && (
                 <div className="p-3.5 bg-neutral-900 rounded-xl text-xs text-neutral-300 border border-white/5">
-                  💡 <strong>{t("Підказка:", locale)}</strong> {lesson.content.challenge.hint}
+                  💡 <strong>{t("Підказка:", locale)}</strong> {currentContent.challenge.hint}
                 </div>
               )}
 
               {showSolution && (
                 <div className="pt-2">
-                  <CodeBlock code={lesson.content.challenge.solution} filename="Solution.swift" />
+                  <CodeBlock code={currentContent.challenge.solution} filename="Solution.swift" />
                 </div>
               )}
             </div>
           )}
 
-          {/* Completion Action */}
-          <div id="completion" className="glass-card p-6 sm:p-8 rounded-2xl border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-neutral-900 via-neutral-900/80 to-neutral-900 scroll-mt-24">
-            <div className="space-y-1 text-center sm:text-left">
-              <h4 className="text-lg font-bold text-white flex items-center justify-center sm:justify-start gap-2">
-                {isCompleted ? (
-                  <>
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                    <span>{t("Урок успішно пройдено!", locale)}</span>
-                  </>
-                ) : (
-                  <>
-                    <Flame className="w-5 h-5 text-orange-400" />
-                    <span>{t("Закінчили вивчення матеріалу?", locale)}</span>
-                  </>
-                )}
-              </h4>
-              <p className="text-xs text-neutral-400">
-                {isCompleted
-                  ? t("Ви заробили +25 XP за цей урок. Продовжуйте до наступної теми!", locale)
-                  : t("Натисніть кнопку нижче, щоб зафіксувати прогрес та отримати +25 XP.", locale)}
-              </p>
-            </div>
+          {/* Intra-Lesson Page Navigation Buttons (for Multi-Page Topics) */}
+          {hasPages && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-neutral-900/90 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+              {activePageIndex > 0 ? (
+                <button
+                  onClick={handlePrevPage}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold border border-white/10 transition-all"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span className="truncate max-w-[200px]">
+                    {locale === 'en' ? 'Previous part' : 'Назад'}: {pages[activePageIndex - 1]?.stepLabel || pages[activePageIndex - 1]?.title}
+                  </span>
+                </button>
+              ) : (
+                <div />
+              )}
 
-            <button
-              onClick={handleComplete}
-              disabled={isCompleted}
-              className={`px-6 py-3.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-lg whitespace-nowrap ${
-                isCompleted
-                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 cursor-default'
-                  : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20 active:scale-95'
-              }`}
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{isCompleted ? t("Урок пройдено", locale) : t("Відзначити як завершений (+25 XP)", locale)}</span>
-            </button>
-          </div>
+              {activePageIndex < pages.length - 1 ? (
+                <button
+                  onClick={handleNextPage}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-ios-blue hover:bg-blue-600 text-white text-xs font-bold shadow-lg shadow-ios-blue/20 transition-all active:scale-95"
+                >
+                  <span className="truncate max-w-[220px]">
+                    {locale === 'en' ? 'Next part' : 'Далі'}: {pages[activePageIndex + 1]?.stepLabel || pages[activePageIndex + 1]?.title}
+                  </span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              ) : null}
+            </div>
+          )}
+
+          {/* Completion Action (Displayed either on Single Page lessons OR the final page of Multi-Page lessons) */}
+          {(!hasPages || activePageIndex === pages.length - 1) && (
+            <div id="completion" className="glass-card p-6 sm:p-8 rounded-2xl border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-neutral-900 via-neutral-900/80 to-neutral-900 scroll-mt-24">
+              <div className="space-y-1 text-center sm:text-left">
+                <h4 className="text-lg font-bold text-white flex items-center justify-center sm:justify-start gap-2">
+                  {isCompleted ? (
+                    <>
+                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                      <span>{t("Урок успішно пройдено!", locale)}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Flame className="w-5 h-5 text-orange-400" />
+                      <span>{t("Закінчили вивчення матеріалу?", locale)}</span>
+                    </>
+                  )}
+                </h4>
+                <p className="text-xs text-neutral-400">
+                  {isCompleted
+                    ? t("Ви заробили +25 XP за цей урок. Продовжуйте до наступної теми!", locale)
+                    : t("Натисніть кнопку нижче, щоб зафіксувати прогрес та отримати +25 XP.", locale)}
+                </p>
+              </div>
+
+              <button
+                onClick={handleComplete}
+                disabled={isCompleted}
+                className={`px-6 py-3.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-lg whitespace-nowrap ${
+                  isCompleted
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 cursor-default'
+                    : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20 active:scale-95'
+                }`}
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{isCompleted ? t("Урок пройдено", locale) : t("Відзначити як завершений (+25 XP)", locale)}</span>
+              </button>
+            </div>
+          )}
 
           {/* Pagination Navigation */}
           <div className="pt-8 border-t border-white/10 flex items-center justify-between gap-4">

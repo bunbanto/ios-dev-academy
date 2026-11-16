@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   Zap,
@@ -166,9 +167,12 @@ export default function Navbar() {
                 >
                   <div className="relative">
                     {user.avatar ? (
-                      <img
+                      <Image
                         src={user.avatar}
                         alt={user.name}
+                        width={32}
+                        height={32}
+                        unoptimized
                         className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border border-white/20"
                         onError={(e) => {
                           // Fallback to initials if image fails to load

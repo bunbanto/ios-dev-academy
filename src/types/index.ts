@@ -42,13 +42,40 @@ export interface XcodeLab {
   tips?: string;
 }
 
+export interface LessonPage {
+  id: string;
+  title: string;
+  stepLabel?: string;
+  description?: string;
+  content: {
+    realWorldContext?: string;
+    detailedTheory?: TheorySection[];
+    theory?: string[];
+    codeSnippet?: string;
+    comparisonSnippet?: CodeComparison;
+    explanation?: string[];
+    underTheHood?: DeepDive;
+    checkpoints?: LessonCheckpoint[];
+    keyTakeaways?: string[];
+    commonMistakes?: string[];
+    challenge?: {
+      task: string;
+      hint: string;
+      solution: string;
+    };
+    xcodeLab?: XcodeLab;
+  };
+}
+
 export interface Lesson {
   id: string;
   module: number;
   moduleTitle: string;
   title: string;
   description: string;
-  difficulty: 'Початковий' | 'Середній' | 'Просунутий';
+  difficulty:
+    | 'Початковий' | 'Середній' | 'Просунутий'
+    | 'Beginner' | 'Intermediate' | 'Advanced';
   estimatedMinutes: number;
   icon: string;
   content: {
@@ -69,6 +96,7 @@ export interface Lesson {
     };
     xcodeLab?: XcodeLab;
   };
+  pages?: LessonPage[];
 }
 
 export interface QuizQuestion {
