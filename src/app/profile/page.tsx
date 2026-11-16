@@ -37,8 +37,11 @@ import {
   Globe,
   Database,
   Loader2,
+  Bookmark,
+  Trash2,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { getSavedLessonIds, toggleSavedLesson } from '@/lib/saved-lessons';
 
 function ProfileContent() {
   const { locale } = useLocale();
@@ -47,8 +50,10 @@ function ProfileContent() {
   const initialTab = searchParams.get('tab') || 'progress';
 
   const { user, openAuthModal, logout, updateProfile } = useAuth();
+  const authenticatedUserId = user?.id;
   const [progress, setProgress] = useState<UserProgress | null>(null);
-  const [activeTab, setActiveTab] = useState<'progress' | 'achievements' | 'certificate' | 'settings'>('progress');
+  const [activeTab, setActiveTab] = useState<'progress' | 'achievements' | 'certificate' | 'settings' | 'saved'>('progress');
+  const [savedLessonIds, setSavedLessonIds] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editBio, setEditBio] = useState('');
@@ -57,10 +62,28 @@ function ProfileContent() {
   const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
-    if (initialTab === 'certificate' || initialTab === 'achievements' || initialTab === 'settings') {
-      setActiveTab(initialTab);
+    if (initialTab === 'certificate' || initialTab === 'achievements' || initialTab === 'settings' || initialTab === 'saved') {
+      setActiveTab(initialTab as 'certificate' | 'achievements' | 'settings' | 'saved');
     }
   }, [initialTab]);
+
+  useEffect(() => {
+    let active = true;
+    if (authenticatedUserId) getSavedLessonIds(authenticatedUserId).then((ids) => { if (active) setSavedLessonIds(ids); })
+      .catch((error) => console.error('Could not load saved lessons', error));
+    else setSavedLessonIds([]);
+    return () => { active = false; };
+  }, [authenticatedUserId]);
+
+  const removeSavedLesson = async (lessonId: string) => {
+    if (!user) return;
+    try {
+      const ids = await toggleSavedLesson(user.id, lessonId);
+      setSavedLessonIds(ids);
+    } catch (error) {
+      console.error('Could not update saved lessons', error);
+    }
+  };
 
   useEffect(() => {
     setProgress(getUserProgress());
@@ -506,6 +529,13 @@ function ProfileContent() {
         </button>
 
         <button
+          onClick={() => setActiveTab('saved')}
+          className={`flex items-center gap-2 py-3 px-3 sm:px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap ${activeTab === 'saved' ? 'border-ios-blue text-ios-blue' : 'border-transparent text-neutral-400 hover:text-white'}`}
+        >
+          <Bookmark className="w-4 h-4" />
+          <span>{locale === 'en' ? `Saved (${savedLessonIds.length})` : `Збережене (${savedLessonIds.length})`}</span>
+        </button>
+        <button
           onClick={() => setActiveTab('certificate')}
           className={`flex items-center gap-2 py-3 px-3 sm:px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap ${
             activeTab === 'certificate'
@@ -517,6 +547,31 @@ function ProfileContent() {
           <span>{t("Офіційний Сертифікат", locale)}</span>
         </button>
       </div>
+
+      {activeTab === 'saved' && (
+        <section className="space-y-4 animate-fadeIn">
+          <h2 className="text-lg font-bold text-white">{locale === 'en' ? 'Saved lessons' : 'Збережені уроки'}</h2>
+          {savedLessonIds.length === 0 ? (
+            <div className="glass-panel rounded-2xl border border-white/10 p-8 text-center space-y-3">
+              <p className="text-sm text-neutral-400">{locale === 'en' ? 'No saved lessons yet. Save a lesson to find it here.' : 'Поки немає збережених уроків. Збережіть урок — і він з’явиться тут.'}</p>
+              <Link href="/roadmap" className="text-sm font-semibold text-ios-blue hover:text-white">{locale === 'en' ? 'Browse lessons →' : 'Перейти до програми →'}</Link>
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {lessons.filter((lesson) => savedLessonIds.includes(lesson.id)).map((lesson) => (
+                <div key={lesson.id} className="glass-panel rounded-2xl border border-white/10 p-4 flex items-center gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] text-ios-blue">{lesson.moduleTitle}</p>
+                    <p className="text-sm font-semibold text-white truncate">{lesson.title}</p>
+                  </div>
+                  <Link href={`/lessons/${lesson.id}`} className="text-xs font-semibold text-ios-blue hover:text-white">{locale === 'en' ? 'Open' : 'Відкрити'}</Link>
+                  <button type="button" onClick={() => removeSavedLesson(lesson.id)} aria-label={locale === 'en' ? `Remove ${lesson.title}` : `Видалити ${lesson.title}`} className="p-2 text-neutral-400 hover:text-red-300"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* TAB 1: PROGRESS */}
       {activeTab === 'progress' && (

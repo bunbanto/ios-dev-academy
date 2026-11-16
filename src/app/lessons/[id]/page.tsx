@@ -33,13 +33,17 @@ import confetti from 'canvas-confetti';
 import { LESSONS } from '@/data/lessons/index';
 import CodeBlock from '@/components/CodeBlock';
 import LessonSidebar, { InPageSection } from '@/components/LessonSidebar';
-import { getUserProgress, markLessonCompleted, toggleBookmark } from '@/lib/storage';
+import { getUserProgress, markLessonCompleted } from '@/lib/storage';
 import { useLocale } from '@/i18n/LocaleContext';
 import { localizeContent } from '@/i18n/content';
 import { isModuleUnlocked } from '@/lib/progression';
+import { useAuth } from '@/context/AuthContext';
+import { getSavedLessonIds, toggleSavedLesson } from '@/lib/saved-lessons';
 
 export default function LessonDetailPage() {
   const { locale } = useLocale();
+  const { user, openAuthModal } = useAuth();
+  const authenticatedUserId = user?.id;
   const lessons = localizeContent(LESSONS, locale);
   const params = useParams();
   const lessonId = params?.id as string;
@@ -73,7 +77,7 @@ export default function LessonDetailPage() {
       setIsModuleAccessGranted(isModuleUnlocked(lesson?.module ?? 1, LESSONS, progress.completedLessons));
       setAccessCheckedForLesson(lessonId);
       setIsCompleted(progress.completedLessons.includes(lessonId));
-      setIsBookmarked(progress.bookmarks?.includes(lessonId) || false);
+      setIsBookmarked(false);
       setShowHint(false);
       setShowSolution(false);
       setCheckpointAnswers({});
@@ -81,6 +85,18 @@ export default function LessonDetailPage() {
       setCompletedPageIndices([]);
     }
   }, [lessonId, lesson?.module]);
+
+  useEffect(() => {
+    let active = true;
+    if (!authenticatedUserId || !lessonId) {
+      setIsBookmarked(false);
+      return;
+    }
+    getSavedLessonIds(authenticatedUserId)
+      .then((ids) => { if (active) setIsBookmarked(ids.includes(lessonId)); })
+      .catch((error) => console.error('Could not load saved lessons', error));
+    return () => { active = false; };
+  }, [authenticatedUserId, lessonId]);
 
   const inPageSections = useMemo<InPageSection[]>(() => {
     if (!currentContent) return [];
@@ -213,9 +229,17 @@ export default function LessonDetailPage() {
     }
   };
 
-  const handleBookmark = () => {
-    const updated = toggleBookmark(lesson.id);
-    setIsBookmarked(updated);
+  const handleBookmark = async () => {
+    if (!user) {
+      openAuthModal('login');
+      return;
+    }
+    try {
+      const ids = await toggleSavedLesson(user.id, lesson.id);
+      setIsBookmarked(ids.includes(lesson.id));
+    } catch (error) {
+      console.error('Could not update saved lessons', error);
+    }
   };
 
   const handleSelectCheckpoint = (qIndex: number, optionIndex: number) => {
@@ -314,6 +338,9 @@ export default function LessonDetailPage() {
                   {isBookmarked ? t("Збережено", locale) : t("Зберегти", locale)}
                 </span>
               </button>
+              <Link href="/profile?tab=saved" className="text-[11px] text-ios-blue hover:text-white transition-colors">
+                {locale === 'en' ? 'View in profile' : 'Переглянути в профілі'}
+              </Link>
             </div>
           </div>
 
