@@ -17,9 +17,10 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { t } from '@/i18n/ui';
-import { isModuleUnlocked } from '@/lib/progression';
+import { isLessonUnlocked, isModuleUnlocked } from '@/lib/progression';
 import { LESSONS } from '@/data/lessons/index';
 import type { Lesson } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 export interface InPageSection {
   id: string;
@@ -61,10 +62,20 @@ export default function LessonSidebar({
   onCloseMobile,
 }: LessonSidebarProps) {
   const { locale } = useLocale();
+  const { isAdmin, accessControl } = useAuth();
   const [activeTab, setActiveTab] = useState<'curriculum' | 'sections'>('curriculum');
   const [expandedModules, setExpandedModules] = useState<Record<number, boolean>>({
     [currentLessonModule]: true,
   });
+
+  const accessOptions = useMemo(
+    () => ({
+      isAdmin,
+      unlockedLessons: accessControl.unlockedLessons,
+      lockedLessons: accessControl.lockedLessons,
+    }),
+    [isAdmin, accessControl.unlockedLessons, accessControl.lockedLessons],
+  );
 
   // Ensure current lesson's module is expanded when lesson changes
   useEffect(() => {
@@ -188,7 +199,7 @@ export default function LessonSidebar({
       {activeTab === 'curriculum' && (
         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
           {moduleGroups.map((group) => {
-            const isUnlocked = isModuleUnlocked(group.moduleNumber, LESSONS, completedLessonIds);
+            const isUnlocked = isModuleUnlocked(group.moduleNumber, LESSONS, completedLessonIds, accessOptions);
             const isExpanded = !!expandedModules[group.moduleNumber];
             const groupCompletedCount = group.lessons.filter((l) =>
               completedLessonIds.includes(l.id)
@@ -249,8 +260,14 @@ export default function LessonSidebar({
                     {group.lessons.map((lessonItem) => {
                       const isCurrent = lessonItem.id === currentLessonId;
                       const isCompleted = completedLessonIds.includes(lessonItem.id);
+                      const isLessonAccessible = isLessonUnlocked(
+                        lessonItem,
+                        LESSONS,
+                        completedLessonIds,
+                        accessOptions,
+                      );
 
-                      if (!isUnlocked) {
+                      if (!isLessonAccessible) {
                         return (
                           <div
                             key={lessonItem.id}

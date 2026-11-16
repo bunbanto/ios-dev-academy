@@ -6,23 +6,25 @@ import {
   BookOpen,
   CheckCircle2,
   Clock,
-  Sparkles,
   ArrowRight,
-  Filter,
   Search,
   Check,
   Circle,
   LockKeyhole,
+  ShieldCheck,
+  Unlock,
 } from 'lucide-react';
 import { LESSONS } from '@/data/lessons/index';
 import { getUserProgress, UserProgress } from '@/lib/storage';
 import { useLocale } from '@/i18n/LocaleContext';
 import { localizeContent } from '@/i18n/content';
 import { t } from '@/i18n/ui';
-import { isModuleUnlocked } from '@/lib/progression';
+import { isLessonUnlocked, isModuleUnlocked } from '@/lib/progression';
+import { useAuth } from '@/context/AuthContext';
 
 export default function RoadmapPage() {
   const { locale } = useLocale();
+  const { isAdmin, accessControl } = useAuth();
   const lessons = localizeContent(LESSONS, locale);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
@@ -33,6 +35,11 @@ export default function RoadmapPage() {
   }, []);
 
   const completedIds = progress?.completedLessons || [];
+  const accessOptions = {
+    isAdmin,
+    unlockedLessons: accessControl.unlockedLessons,
+    lockedLessons: accessControl.lockedLessons,
+  };
 
   const filteredLessons = lessons.filter((lesson) => {
     const matchesSearch =
@@ -65,9 +72,41 @@ export default function RoadmapPage() {
           {locale === 'en' ? 'iOS Developer Roadmap' : t("Дорожня карта iOS Розробника", locale)}
         </h1>
         <p className="text-neutral-400 text-sm leading-relaxed">
-          {locale === 'en' ? 'A structured learning path from Swift fundamentals to building complete SwiftUI apps and publishing them on the App Store. Work through the lessons in order and track your progress.' : t("Структурований план навчання від базових типів Swift до повноцінного створення застосунків на SwiftUI та публікації в App Store. Проходьте уроки послідовно та відзначайте свій прогрес.", locale)}
+          {locale === 'en'
+            ? 'A structured learning path from Swift fundamentals to building complete SwiftUI apps and publishing them on the App Store. Work through the lessons in order and track your progress.'
+            : t("Структурований план навчання від базових типів Swift до повноцінного створення застосунків на SwiftUI та публікації в App Store. Проходьте уроки послідовно та відзначайте свій прогрес.", locale)}
         </p>
       </div>
+
+      {/* Admin Full Access Banner */}
+      {isAdmin && (
+        <div className="glass-panel p-5 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-ios-blue/10 to-transparent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-amber-300 uppercase tracking-wider">
+                {locale === 'en' ? 'Administrator Mode • Full Access' : 'Режим Адміністратора • Повний доступ'}
+              </p>
+              <p className="text-xs text-neutral-300 mt-0.5">
+                {locale === 'en'
+                  ? 'All modules and tasks are unlocked for you. You can open or close access to any tasks for any student.'
+                  : 'Для вас відкриті всі модулі та завдання курсу. Ви можете відкривати або закривати доступ до будь-яких завдань для будь-якого користувача.'}
+              </p>
+            </div>
+          </div>
+
+          <Link
+            href="/admin"
+            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs whitespace-nowrap transition-all flex items-center gap-2 shadow-lg shadow-amber-500/20"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>{locale === 'en' ? 'Manage Student Access' : 'Керувати доступом студентів'}</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
 
       {/* Filters & Search */}
       <div className="glass-panel p-4 rounded-2xl flex flex-col sm:flex-row gap-4 items-center justify-between">
@@ -101,12 +140,12 @@ export default function RoadmapPage() {
 
       {/* Module List */}
       <div className="space-y-12">
-        {Object.entries(modulesMap).map(([moduleTitle, lessons]) => {
-          const moduleNumber = lessons[0]?.module ?? 1;
+        {Object.entries(modulesMap).map(([moduleTitle, moduleLessons]) => {
+          const moduleNumber = moduleLessons[0]?.module ?? 1;
           const allModuleLessons = LESSONS.filter((lesson) => lesson.module === moduleNumber);
           const completedInModule = allModuleLessons.filter((lesson) => completedIds.includes(lesson.id)).length;
           const isModuleFullyComplete = completedInModule === allModuleLessons.length && allModuleLessons.length > 0;
-          const isUnlocked = isModuleUnlocked(moduleNumber, LESSONS, completedIds);
+          const isUnlocked = isModuleUnlocked(moduleNumber, LESSONS, completedIds, accessOptions);
 
           return (
             <div key={moduleTitle} className="space-y-4">
@@ -135,76 +174,142 @@ export default function RoadmapPage() {
               {!isUnlocked ? (
                 <div className="glass-card rounded-2xl border border-white/5 p-5 flex items-center gap-3 text-sm text-neutral-400">
                   <LockKeyhole className="w-5 h-5 shrink-0 text-neutral-500" />
-                  <p>{locale === 'en' ? 'Complete every lesson in the previous module to unlock this one.' : 'Завершіть усі уроки попереднього модуля, щоб відкрити цей.'}</p>
+                  <p>
+                    {allModuleLessons.every((l) => accessControl.lockedLessons.includes(l.id))
+                      ? locale === 'en'
+                        ? 'Access to this module has been closed by the administrator.'
+                        : 'Доступ до цього модуля закрито адміністратором.'
+                      : locale === 'en'
+                      ? 'Complete every lesson in the previous module to unlock this one.'
+                      : 'Завершіть усі уроки попереднього модуля, щоб відкрити цей.'}
+                  </p>
                 </div>
               ) : (
-              /* Lesson Grid */
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {lessons.map((lesson) => {
-                  const isDone = completedIds.includes(lesson.id);
+                /* Lesson Grid */
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {moduleLessons.map((lesson) => {
+                    const isDone = completedIds.includes(lesson.id);
+                    const isLessonAccessible = isLessonUnlocked(lesson, LESSONS, completedIds, accessOptions);
+                    const isExplicitlyUnlocked = !isAdmin && accessControl.unlockedLessons.includes(lesson.id);
+                    const isExplicitlyLocked = !isAdmin && accessControl.lockedLessons.includes(lesson.id);
 
-                  return (
-                    <Link
-                      key={lesson.id}
-                      href={`/lessons/${lesson.id}`}
-                      className={`glass-card p-5 rounded-2xl border transition-all flex flex-col justify-between group hover:scale-[1.01] ${
-                        isDone
-                          ? 'border-emerald-500/30 bg-emerald-950/10'
-                          : 'border-white/10 hover:border-ios-blue/40'
-                      }`}
-                    >
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span
-                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                              lesson.difficulty === t('Початковий', locale)
-                                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                                : lesson.difficulty === t('Середній', locale)
-                                ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
-                                : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
-                            }`}
-                          >
-                            {lesson.difficulty}
-                          </span>
+                    if (!isLessonAccessible) {
+                      return (
+                        <div
+                          key={lesson.id}
+                          className="glass-card p-5 rounded-2xl border border-white/5 bg-neutral-950/50 opacity-65 flex flex-col justify-between cursor-not-allowed"
+                        >
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 border border-white/10">
+                                {lesson.difficulty}
+                              </span>
+                              <div className="flex items-center gap-1 text-[11px] text-neutral-500">
+                                <LockKeyhole className="w-3 h-3" />
+                                <span>
+                                  {isExplicitlyLocked
+                                    ? locale === 'en'
+                                      ? 'Closed by admin'
+                                      : 'Закрито адміном'
+                                    : locale === 'en'
+                                    ? 'Locked'
+                                    : 'Закрито'}
+                                </span>
+                              </div>
+                            </div>
 
-                          <div className="flex items-center gap-1 text-[11px] text-neutral-400">
-                            <Clock className="w-3 h-3" />
+                            <div>
+                              <h3 className="text-base font-bold text-neutral-400 flex items-center gap-2">
+                                <LockKeyhole className="w-4 h-4 shrink-0 text-neutral-500" />
+                                <span>{lesson.title}</span>
+                              </h3>
+                              <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
+                                {lesson.description}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs text-neutral-500">
+                            <span className="flex items-center gap-1.5">
+                              <LockKeyhole className="w-3.5 h-3.5" />
+                              <span>{locale === 'en' ? 'Access restricted' : 'Доступ закритий'}</span>
+                            </span>
                             <span>{lesson.estimatedMinutes} {t("хв", locale)}</span>
                           </div>
                         </div>
+                      );
+                    }
 
-                        <div>
-                          <h3 className="text-base font-bold text-white group-hover:text-ios-blue transition-colors flex items-center gap-2">
-                            <span>{lesson.title}</span>
-                          </h3>
-                          <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-                            {lesson.description}
-                          </p>
+                    return (
+                      <Link
+                        key={lesson.id}
+                        href={`/lessons/${lesson.id}`}
+                        className={`glass-card p-5 rounded-2xl border transition-all flex flex-col justify-between group hover:scale-[1.01] ${
+                          isDone
+                            ? 'border-emerald-500/30 bg-emerald-950/10'
+                            : 'border-white/10 hover:border-ios-blue/40'
+                        }`}
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span
+                                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                                  lesson.difficulty === t('Початковий', locale)
+                                    ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                                    : lesson.difficulty === t('Середній', locale)
+                                    ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                                    : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                }`}
+                              >
+                                {lesson.difficulty}
+                              </span>
+                              {isExplicitlyUnlocked && (
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                                  <Unlock className="w-2.5 h-2.5" />
+                                  <span>{locale === 'en' ? 'Opened by admin' : 'Відкрито адміном'}</span>
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-1 text-[11px] text-neutral-400 shrink-0">
+                              <Clock className="w-3 h-3" />
+                              <span>{lesson.estimatedMinutes} {t("хв", locale)}</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <h3 className="text-base font-bold text-white group-hover:text-ios-blue transition-colors flex items-center gap-2">
+                              <span>{lesson.title}</span>
+                            </h3>
+                            <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
+                              {lesson.description}
+                            </p>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs">
-                        {isDone ? (
-                          <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>{t("Пройдено (+25 XP)", locale)}</span>
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1.5 text-neutral-500 group-hover:text-neutral-300">
-                            <Circle className="w-3.5 h-3.5" />
-                            <span>{t("Не розпочато", locale)}</span>
-                          </span>
-                        )}
+                        <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs">
+                          {isDone ? (
+                            <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span>{t("Пройдено (+25 XP)", locale)}</span>
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1.5 text-neutral-500 group-hover:text-neutral-300">
+                              <Circle className="w-3.5 h-3.5" />
+                              <span>{t("Не розпочато", locale)}</span>
+                            </span>
+                          )}
 
-                        <span className="text-ios-blue font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                          <span>{t("Відкрити урок", locale)}</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
+                          <span className="text-ios-blue font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                            <span>{t("Відкрити урок", locale)}</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </span>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
               )}
             </div>
           );
@@ -213,4 +318,3 @@ export default function RoadmapPage() {
     </div>
   );
 }
-

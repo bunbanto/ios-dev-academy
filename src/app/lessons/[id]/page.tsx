@@ -36,13 +36,14 @@ import LessonSidebar, { InPageSection } from '@/components/LessonSidebar';
 import { getUserProgress, markLessonCompleted } from '@/lib/storage';
 import { useLocale } from '@/i18n/LocaleContext';
 import { localizeContent } from '@/i18n/content';
-import { isModuleUnlocked } from '@/lib/progression';
+import { isLessonUnlocked } from '@/lib/progression';
 import { useAuth } from '@/context/AuthContext';
 import { getSavedLessonIds, toggleSavedLesson } from '@/lib/saved-lessons';
+import { syncUserToRegistry } from '@/lib/access';
 
 export default function LessonDetailPage() {
   const { locale } = useLocale();
-  const { user, openAuthModal } = useAuth();
+  const { user, isAdmin, accessControl, openAuthModal } = useAuth();
   const authenticatedUserId = user?.id;
   const lessons = localizeContent(LESSONS, locale);
   const params = useParams();
@@ -74,7 +75,16 @@ export default function LessonDetailPage() {
     if (lessonId) {
       const progress = getUserProgress();
       setCompletedLessons(progress.completedLessons || []);
-      setIsModuleAccessGranted(isModuleUnlocked(lesson?.module ?? 1, LESSONS, progress.completedLessons));
+      const targetLesson = LESSONS.find((l) => l.id === lessonId);
+      setIsModuleAccessGranted(
+        targetLesson
+          ? isLessonUnlocked(targetLesson, LESSONS, progress.completedLessons, {
+              isAdmin,
+              unlockedLessons: accessControl.unlockedLessons,
+              lockedLessons: accessControl.lockedLessons,
+            })
+          : true,
+      );
       setAccessCheckedForLesson(lessonId);
       setIsCompleted(progress.completedLessons.includes(lessonId));
       setIsBookmarked(false);
@@ -84,7 +94,7 @@ export default function LessonDetailPage() {
       setActivePageIndex(0);
       setCompletedPageIndices([]);
     }
-  }, [lessonId, lesson?.module]);
+  }, [lessonId, lesson?.module, isAdmin, accessControl.unlockedLessons, accessControl.lockedLessons]);
 
   useEffect(() => {
     let active = true;
@@ -153,7 +163,7 @@ export default function LessonDetailPage() {
     );
   }
 
-  if (lesson.module > 1 && accessCheckedForLesson !== lessonId) {
+  if (accessCheckedForLesson !== lessonId) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-20 text-center text-sm text-neutral-400">
         {locale === 'en' ? 'Checking course access…' : 'Перевіряємо доступ до курсу…'}
@@ -161,17 +171,28 @@ export default function LessonDetailPage() {
     );
   }
 
-  if (lesson.module > 1 && !isModuleAccessGranted) {
+  if (!isModuleAccessGranted) {
+    const isClosedByAdmin = !isAdmin && accessControl.lockedLessons.includes(lesson.id);
     return (
       <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-5">
         <div className="mx-auto w-14 h-14 rounded-2xl bg-neutral-800 text-neutral-400 flex items-center justify-center">
           <LockKeyhole className="w-6 h-6" />
         </div>
         <h1 className="text-2xl font-bold text-white">
-          {locale === 'en' ? 'This module is locked' : 'Цей модуль ще закритий'}
+          {isClosedByAdmin
+            ? locale === 'en'
+              ? 'Access to this task is closed'
+              : 'Доступ до цього завдання закритий'
+            : locale === 'en'
+            ? 'This module is locked'
+            : 'Цей модуль ще закритий'}
         </h1>
         <p className="text-sm text-neutral-400">
-          {locale === 'en'
+          {isClosedByAdmin
+            ? locale === 'en'
+              ? 'The administrator has restricted access to this lesson/task for your account.'
+              : 'Адміністратор тимчасово закрив доступ до цього уроку для вашого облікового запису.'
+            : locale === 'en'
             ? 'Complete every lesson in the previous module to unlock this one.'
             : 'Завершіть усі уроки попереднього модуля, щоб відкрити цей.'}
         </p>
@@ -215,9 +236,12 @@ export default function LessonDetailPage() {
   };
 
   const handleComplete = () => {
-    markLessonCompleted(lesson.id, 25);
+    const updatedProgress = markLessonCompleted(lesson.id, 25);
     setIsCompleted(true);
     setCompletedLessons((prev) => Array.from(new Set([...prev, lesson.id])));
+    if (user) {
+      void syncUserToRegistry(user, updatedProgress);
+    }
     try {
       confetti({
         particleCount: 80,

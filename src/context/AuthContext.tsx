@@ -1,9 +1,17 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { UserProfile } from '@/types';
+import React, { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import type { UserAccessControl, UserProfile } from '@/types';
 import { getUserProgress, saveUserProgress } from '@/lib/storage';
 import { auth, googleProvider, isFirebaseConfigured } from '@/lib/firebase';
+import {
+  getLocalUserAccessControl,
+  getUserAccessControl,
+  isAdminUser,
+  resolveUserRole,
+  subscribeToUserAccess,
+  syncUserToRegistry,
+} from '@/lib/access';
 import {
   createUserWithEmailAndPassword,
   getAdditionalUserInfo,
@@ -24,6 +32,9 @@ type AuthModalTab = 'login' | 'signup' | 'verify';
 
 interface AuthContextType {
   user: UserProfile | null;
+  isAdmin: boolean;
+  accessControl: UserAccessControl;
+  refreshAccessControl: () => Promise<void>;
   isLoading: boolean;
   isFirebaseReady: boolean;
   isAuthModalOpen: boolean;
@@ -42,10 +53,33 @@ interface AuthContextType {
 const AUTH_STORAGE_KEY = 'swiftlab_auth_user_v1';
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function normalizeStoredUser(raw: Partial<UserProfile> | null, locale: 'uk' | 'en'): UserProfile | null {
+  if (!raw || !raw.email) return null;
+  const email = raw.email.trim();
+  const role = resolveUserRole(email);
+  return {
+    id: raw.id || email,
+    name: raw.name || email.split('@')[0] || t('Розробник', locale),
+    email,
+    avatar: raw.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}`,
+    provider: raw.provider === 'google' ? 'google' : 'email',
+    isVerified: Boolean(raw.isVerified),
+    verifiedAt: raw.verifiedAt,
+    joinedAt: raw.joinedAt || new Date().toISOString().split('T')[0],
+    role,
+    bio: raw.bio || (locale === 'en'
+      ? 'Beginner in Apple ecosystem mobile development.'
+      : 'Початківець у світі мобільної розробки під екосистему Apple.'),
+    goal: raw.goal || 'own_app',
+    githubUrl: raw.githubUrl,
+  };
+}
+
 function toUserProfile(fbUser: FirebaseUser, previous: Partial<UserProfile> | null, locale: 'uk' | 'en'): UserProfile {
   const isGoogle = fbUser.providerData.some((provider) => provider.providerId === 'google.com');
   const isVerified = fbUser.emailVerified || isGoogle;
   const email = fbUser.email || '';
+  const role = resolveUserRole(email);
 
   return {
     id: fbUser.uid,
@@ -56,7 +90,7 @@ function toUserProfile(fbUser: FirebaseUser, previous: Partial<UserProfile> | nu
     isVerified,
     verifiedAt: isVerified ? previous?.verifiedAt || new Date().toISOString() : undefined,
     joinedAt: previous?.joinedAt || new Date().toISOString().split('T')[0],
-    role: previous?.role || (locale === 'en' ? 'iOS course student' : 'Студент курсу iOS'),
+    role,
     bio: previous?.bio || (locale === 'en'
       ? 'Beginner in Apple ecosystem mobile development.'
       : 'Початківець у світі мобільної розробки під екосистему Apple.'),
@@ -68,21 +102,43 @@ function toUserProfile(fbUser: FirebaseUser, previous: Partial<UserProfile> | nu
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { locale } = useLocale();
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [accessControl, setAccessControl] = useState<UserAccessControl>(() =>
+    getLocalUserAccessControl(null),
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<AuthModalTab>('login');
 
-  const persistUser = (newUser: UserProfile | null) => {
-    setUser(newUser);
-    if (newUser) localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newUser));
-    else localStorage.removeItem(AUTH_STORAGE_KEY);
-    window.dispatchEvent(new Event('swiftlab_auth_change'));
-  };
+  const persistUser = useCallback((newUser: UserProfile | null) => {
+    const normalized = newUser ? { ...newUser, role: resolveUserRole(newUser.email) } : null;
+    setUser(normalized);
+    if (normalized) {
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(normalized));
+      void syncUserToRegistry(normalized);
+    } else {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    }
+    if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+      window.dispatchEvent(new Event('swiftlab_auth_change'));
+    }
+  }, []);
+
+  const refreshAccessControl = useCallback(async () => {
+    const latest = await getUserAccessControl(user);
+    setAccessControl(latest);
+  }, [user]);
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-      if (stored) setUser(JSON.parse(stored));
+      if (stored) {
+        const parsed = normalizeStoredUser(JSON.parse(stored), locale);
+        if (parsed) {
+          setUser(parsed);
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(parsed));
+          void syncUserToRegistry(parsed);
+        }
+      }
     } catch (error) {
       console.error('Failed to load user from localStorage', error);
     } finally {
@@ -107,7 +163,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [locale]);
+  }, [locale, persistUser]);
+
+  // Subscribe to access control changes for the current user
+  useEffect(() => {
+    let active = true;
+    getUserAccessControl(user).then((ctrl) => {
+      if (active) setAccessControl(ctrl);
+    });
+
+    const unsubscribe = subscribeToUserAccess(user, (ctrl) => {
+      if (active) setAccessControl(ctrl);
+    });
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [user]);
 
   const openAuthModal = (tab: AuthModalTab = 'login') => {
     setAuthModalTab(tab);
@@ -129,12 +202,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      persistUser(toUserProfile(result.user, user?.id === result.user.uid ? user : null, locale));
+      const profile = toUserProfile(result.user, user?.id === result.user.uid ? user : null, locale);
       if (getAdditionalUserInfo(result)?.isNewUser) {
         const progress = getUserProgress();
         progress.totalXp += 50;
         saveUserProgress(progress);
       }
+      persistUser(profile);
       closeAuthModal();
     } catch (error) {
       const authError = error as { code?: string; message?: string };
@@ -189,12 +263,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const wasVerified = user.isVerified;
     const verifiedUser = toUserProfile(auth.currentUser, user, locale);
-    persistUser(verifiedUser);
     if (!wasVerified) {
       const progress = getUserProgress();
       progress.totalXp += 50;
       saveUserProgress(progress);
     }
+    persistUser(verifiedUser);
     closeAuthModal();
     return true;
   };
@@ -211,7 +285,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateProfile = (data: Partial<UserProfile>) => {
     if (!user) return;
-    const updated = { ...user, ...data };
+    const updated: UserProfile = {
+      ...user,
+      ...data,
+      role: resolveUserRole(user.email),
+    };
     persistUser(updated);
   };
 
@@ -226,9 +304,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persistUser(null);
   };
 
+  const isAdmin = isAdminUser(user);
+
   return (
     <AuthContext.Provider value={{
       user,
+      isAdmin,
+      accessControl,
+      refreshAccessControl,
       isLoading,
       isFirebaseReady: isFirebaseConfigured,
       isAuthModalOpen,

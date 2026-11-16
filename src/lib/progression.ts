@@ -1,6 +1,12 @@
 import type { Lesson } from '@/types';
 
-export function isModuleUnlocked(moduleNumber: number, lessons: Lesson[], completedIds: string[]): boolean {
+export interface AccessOptions {
+  isAdmin?: boolean;
+  unlockedLessons?: string[];
+  lockedLessons?: string[];
+}
+
+export function isBaseModuleUnlocked(moduleNumber: number, lessons: Lesson[], completedIds: string[]): boolean {
   const firstModule = Math.min(...lessons.map((lesson) => lesson.module));
   if (!Number.isFinite(firstModule) || moduleNumber <= firstModule) return true;
 
@@ -11,4 +17,33 @@ export function isModuleUnlocked(moduleNumber: number, lessons: Lesson[], comple
     const moduleLessons = lessons.filter((lesson) => lesson.module === module);
     return moduleLessons.length > 0 && moduleLessons.every((lesson) => completedIds.includes(lesson.id));
   });
+}
+
+export function isLessonUnlocked(
+  lesson: Lesson,
+  lessons: Lesson[],
+  completedIds: string[],
+  options?: AccessOptions,
+): boolean {
+  if (options?.isAdmin) return true;
+  if (options?.lockedLessons?.includes(lesson.id)) return false;
+  if (options?.unlockedLessons?.includes(lesson.id)) return true;
+
+  return isBaseModuleUnlocked(lesson.module, lessons, completedIds);
+}
+
+export function isModuleUnlocked(
+  moduleNumber: number,
+  lessons: Lesson[],
+  completedIds: string[],
+  options?: AccessOptions,
+): boolean {
+  if (options?.isAdmin) return true;
+
+  const moduleLessons = lessons.filter((lesson) => lesson.module === moduleNumber);
+  if (moduleLessons.length === 0) {
+    return isBaseModuleUnlocked(moduleNumber, lessons, completedIds);
+  }
+
+  return moduleLessons.some((lesson) => isLessonUnlocked(lesson, lessons, completedIds, options));
 }

@@ -153,6 +153,8 @@ export interface PlaygroundExample {
   interactiveType: 'counter' | 'profile' | 'todo' | 'weather' | 'tipcalc' | 'biometric';
 }
 
+export type UserRole = 'admin' | 'student';
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -162,10 +164,37 @@ export interface UserProfile {
   isVerified: boolean;
   verifiedAt?: string;
   joinedAt: string;
-  role: string;
+  role: UserRole;
   bio?: string;
   githubUrl?: string;
   goal?: string;
+}
+
+export interface UserAccessControl {
+  email: string;
+  uid?: string;
+  name?: string;
+  role: UserRole;
+  unlockedLessons: string[];
+  lockedLessons: string[];
+  updatedAt: string;
+  updatedBy?: string;
+}
+
+export interface ManagedUserRecord {
+  id: string;
+  uid?: string;
+  email: string;
+  name: string;
+  avatar?: string;
+  role: UserRole;
+  isVerified?: boolean;
+  joinedAt?: string;
+  lastActiveAt?: string;
+  completedLessons: string[];
+  totalXp?: number;
+  unlockedLessons: string[];
+  lockedLessons: string[];
 }
 
 export interface Achievement {

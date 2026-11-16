@@ -28,10 +28,11 @@ import { useAuth } from '@/context/AuthContext';
 import { useLocale } from '@/i18n/LocaleContext';
 import { useTheme } from '@/context/ThemeContext';
 import { t } from '@/i18n/ui';
+import { getRoleLabel } from '@/lib/access';
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user, openAuthModal, logout } = useAuth();
+  const { user, isAdmin, openAuthModal, logout } = useAuth();
   const { locale, setLocale } = useLocale();
   const { theme, toggleTheme } = useTheme();
   const [progress, setProgress] = useState<UserProgress | null>(null);
@@ -70,6 +71,9 @@ export default function Navbar() {
     { href: '/leaderboard', label: locale === 'en' ? 'Leaderboard' : 'Рейтинг', icon: Trophy },
     { href: '/cheatsheet', label: t('Шпаргалка', locale), icon: Code2 },
     { href: '/projects', label: t('Проєкти', locale), icon: FolderGit2 },
+    ...(isAdmin
+      ? [{ href: '/admin', label: locale === 'en' ? 'Admin' : 'Адмін', icon: ShieldCheck }]
+      : []),
   ];
 
   return (
@@ -203,8 +207,19 @@ export default function Navbar() {
                 {userDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-[#121622] border border-neutral-200 dark:border-white/10 shadow-2xl p-2 z-50 animate-fadeIn">
                     <div className="p-3 border-b border-white/10 mb-1">
-                      <p className="text-xs font-bold text-white truncate">{user.name}</p>
-                      <p className="text-[11px] text-neutral-400 truncate">{user.email}</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-bold text-white truncate">{user.name}</p>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                            isAdmin
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                              : 'bg-ios-blue/20 text-ios-blue border border-ios-blue/30'
+                          }`}
+                        >
+                          {getRoleLabel(user.role, locale)}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-400 truncate mt-0.5">{user.email}</p>
                       
                       <div className="mt-2 flex items-center gap-1.5">
                         {user.isVerified ? (
@@ -225,6 +240,17 @@ export default function Navbar() {
                         )}
                       </div>
                     </div>
+
+                    {isAdmin && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-amber-300 hover:text-amber-200 hover:bg-amber-500/10 font-semibold transition-colors"
+                      >
+                        <ShieldCheck className="w-4 h-4 text-amber-400" />
+                        <span>{locale === 'en' ? 'Admin Panel (Access)' : 'Адмін-панель (Доступи)'}</span>
+                      </Link>
+                    )}
 
                     <Link
                       href="/profile"
@@ -303,7 +329,18 @@ export default function Navbar() {
                   )}
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-white">{user.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-bold text-white">{user.name}</p>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        isAdmin
+                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                          : 'bg-ios-blue/20 text-ios-blue border border-ios-blue/30'
+                      }`}
+                    >
+                      {getRoleLabel(user.role, locale)}
+                    </span>
+                  </div>
                   <p className="text-[11px] text-neutral-400">{user.email}</p>
                 </div>
               </div>

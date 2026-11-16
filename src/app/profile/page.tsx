@@ -42,6 +42,8 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { getSavedLessonIds, toggleSavedLesson } from '@/lib/saved-lessons';
+import { getRoleLabel } from '@/lib/access';
+import { isLessonUnlocked } from '@/lib/progression';
 
 function ProfileContent() {
   const { locale } = useLocale();
@@ -49,7 +51,7 @@ function ProfileContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') || 'progress';
 
-  const { user, openAuthModal, logout, updateProfile } = useAuth();
+  const { user, isAdmin, accessControl, openAuthModal, logout, updateProfile } = useAuth();
   const authenticatedUserId = user?.id;
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [activeTab, setActiveTab] = useState<'progress' | 'achievements' | 'certificate' | 'settings' | 'saved'>('progress');
@@ -279,6 +281,17 @@ function ProfileContent() {
                   {user.name}
                 </h1>
 
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                    isAdmin
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                      : 'bg-ios-blue/20 text-ios-blue border border-ios-blue/30'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>{getRoleLabel(user.role, locale)}</span>
+                </span>
+
                 {user.isVerified ? (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-semibold">
                     <ShieldCheck className="w-3.5 h-3.5" />
@@ -314,7 +327,16 @@ function ProfileContent() {
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2.5 self-stretch sm:self-auto justify-end">
+          <div className="flex flex-wrap items-center gap-2.5 self-stretch sm:self-auto justify-end">
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold transition-colors flex items-center gap-2 shadow-lg shadow-amber-500/20"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>{locale === 'en' ? 'Admin Panel' : 'Адмін-панель'}</span>
+              </Link>
+            )}
             <button
               onClick={() => setIsEditing(!isEditing)}
               className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-200 hover:text-white text-xs font-semibold transition-colors flex items-center gap-2"
@@ -592,6 +614,11 @@ function ProfileContent() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {lessons.map((lesson) => {
               const isDone = completedIds.includes(lesson.id);
+              const isUnlocked = isLessonUnlocked(lesson, LESSONS, completedIds, {
+                isAdmin,
+                unlockedLessons: accessControl.unlockedLessons,
+                lockedLessons: accessControl.lockedLessons,
+              });
 
               return (
                 <div
@@ -599,6 +626,8 @@ function ProfileContent() {
                   className={`p-4 rounded-2xl border transition-all flex items-center justify-between gap-4 ${
                     isDone
                       ? 'bg-emerald-950/15 border-emerald-500/30'
+                      : !isUnlocked
+                      ? 'bg-neutral-950/50 border-white/5 opacity-60'
                       : 'bg-neutral-900/60 border-white/5'
                   }`}
                 >
@@ -626,16 +655,23 @@ function ProfileContent() {
                     </div>
                   </div>
 
-                  <Link
-                    href={`/lessons/${lesson.id}`}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-colors ${
-                      isDone
-                        ? 'bg-white/5 hover:bg-white/10 text-neutral-300'
-                        : 'bg-ios-blue hover:bg-blue-600 text-white shadow'
-                    }`}
-                  >
-                    {isDone ? t("Повторити", locale) : t("Вчити", locale)}
-                  </Link>
+                  {isUnlocked ? (
+                    <Link
+                      href={`/lessons/${lesson.id}`}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-colors ${
+                        isDone
+                          ? 'bg-white/5 hover:bg-white/10 text-neutral-300'
+                          : 'bg-ios-blue hover:bg-blue-600 text-white shadow'
+                      }`}
+                    >
+                      {isDone ? t("Повторити", locale) : t("Вчити", locale)}
+                    </Link>
+                  ) : (
+                    <span className="px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 bg-neutral-800 text-neutral-500 flex items-center gap-1 cursor-not-allowed">
+                      <Lock className="w-3 h-3" />
+                      <span>{locale === 'en' ? 'Locked' : 'Закрито'}</span>
+                    </span>
+                  )}
                 </div>
               );
             })}

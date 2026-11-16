@@ -1,6 +1,148 @@
 rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: leaderboard/{playerId}
+// Document ID: {playerId} (matches Firebase Auth UID)
+// Fields:
+//   - displayName: string (required, 1..60 chars)
+//   - avatar: string (required)
+//   - totalPoints: int (required, cumulative points)
+//   - quizzesPlayed: int (required, incremented by 1 per attempt)
+//   - bestScore: int (required, max of previous bestScore and lastScore)
+//   - lastScore: int (required, 0..8)
+//   - updatedAt: timestamp (optional/serverTimestamp)
+//
+// Collection: users/{userId}
+// Document ID: {userId} (matches Firebase Auth UID)
+// Fields:
+//   - id: string (optional, <= 128 chars)
+//   - uid: string (optional, must match userId for non-admin, <= 128 chars)
+//   - email: string (required/optional, <= 254 chars)
+//   - name: string (optional, <= 120 chars)
+//   - avatar: string (optional, <= 2048 chars)
+//   - provider: string (optional, 'google' | 'email')
+//   - isVerified: bool (optional)
+//   - verifiedAt: string (optional, <= 100 chars)
+//   - joinedAt: string (optional, <= 100 chars)
+//   - lastActiveAt: string (optional, <= 100 chars)
+//   - role: string (required, 'admin' | 'student')
+//   - bio: string (optional, <= 1000 chars)
+//   - githubUrl: string (optional, <= 500 chars)
+//   - goal: string (optional, <= 120 chars)
+//   - completedLessons: list<string> (optional, <= 500 items)
+//   - totalXp: number (optional, 0..1000000)
+//   - unlockedLessons: list<string> (optional, <= 500 items)
+//   - lockedLessons: list<string> (optional, <= 500 items)
+//   - updatedAt: string | timestamp (optional)
+//
+// Subcollection: users/{userId}/private/savedLessons
+// Document ID: savedLessons
+// Fields:
+//   - lessonIds: list<string> (required, <= 500 items)
+//   - updatedAt: string | timestamp (optional, <= 100 chars if string)
+//
+// Collection: userAccess/{accessKey}
+// Document ID: {accessKey} (normalized user email or UID)
+// Fields:
+//   - email: string (required, 1..254 chars)
+//   - uid: string | null (optional, <= 128 chars)
+//   - name: string | null (optional, <= 120 chars)
+//   - role: string (required, 'admin' | 'student')
+//   - unlockedLessons: list<string> (required, <= 500 items)
+//   - lockedLessons: list<string> (required, <= 500 items)
+//   - updatedAt: string | timestamp (optional, <= 100 chars if string)
+//   - updatedBy: string | null (optional, <= 254 chars)
+//
+// ===============================================================
+
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email == 'dp180183fjs@gmail.com';
+    }
+
+    function uidUnchanged(userId) {
+      return !('uid' in request.resource.data)
+        || request.resource.data.uid == userId;
+    }
+
+    function isValidSavedLessons(data) {
+      return data.keys().hasOnly(['lessonIds', 'updatedAt'])
+        && data.lessonIds is list
+        && data.lessonIds.size() <= 500
+        && (!('updatedAt' in data)
+          || (data.updatedAt is string && data.updatedAt.size() <= 100)
+          || data.updatedAt is timestamp);
+    }
+
+    function isValidUserRecord(data) {
+      return data.keys().hasOnly([
+          'id', 'uid', 'email', 'name', 'avatar', 'provider',
+          'isVerified', 'verifiedAt', 'joinedAt', 'lastActiveAt',
+          'role', 'bio', 'githubUrl', 'goal', 'completedLessons',
+          'totalXp', 'unlockedLessons', 'lockedLessons', 'updatedAt'
+        ])
+        && data.role in ['admin', 'student']
+        && (!('id' in data) || (data.id is string && data.id.size() <= 128))
+        && (!('uid' in data) || (data.uid is string && data.uid.size() > 0 && data.uid.size() <= 128))
+        && (!('email' in data) || (data.email is string && data.email.size() > 0 && data.email.size() <= 254))
+        && (!('name' in data) || (data.name is string && data.name.size() <= 120))
+        && (!('avatar' in data) || (data.avatar is string && data.avatar.size() <= 2048))
+        && (!('provider' in data) || data.provider in ['google', 'email'])
+        && (!('isVerified' in data) || data.isVerified is bool)
+        && (!('verifiedAt' in data) || (data.verifiedAt is string && data.verifiedAt.size() <= 100))
+        && (!('joinedAt' in data) || (data.joinedAt is string && data.joinedAt.size() <= 100))
+        && (!('lastActiveAt' in data) || (data.lastActiveAt is string && data.lastActiveAt.size() <= 100))
+        && (!('bio' in data) || (data.bio is string && data.bio.size() <= 1000))
+        && (!('githubUrl' in data) || (data.githubUrl is string && data.githubUrl.size() <= 500))
+        && (!('goal' in data) || (data.goal is string && data.goal.size() <= 120))
+        && (!('completedLessons' in data) || (data.completedLessons is list && data.completedLessons.size() <= 500))
+        && (!('totalXp' in data) || (data.totalXp is number && data.totalXp >= 0 && data.totalXp <= 1000000))
+        && (!('unlockedLessons' in data) || (data.unlockedLessons is list && data.unlockedLessons.size() <= 500))
+        && (!('lockedLessons' in data) || (data.lockedLessons is list && data.lockedLessons.size() <= 500))
+        && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 100) || data.updatedAt is timestamp);
+    }
+
+    function isValidUserAccess(data) {
+      return data.keys().hasOnly([
+          'email', 'uid', 'name', 'role',
+          'unlockedLessons', 'lockedLessons', 'updatedAt', 'updatedBy'
+        ])
+        && data.email is string
+        && data.email.size() > 0
+        && data.email.size() <= 254
+        && (!('uid' in data) || data.uid == null || (data.uid is string && data.uid.size() <= 128))
+        && (!('name' in data) || data.name == null || (data.name is string && data.name.size() <= 120))
+        && data.role in ['admin', 'student']
+        && data.unlockedLessons is list
+        && data.unlockedLessons.size() <= 500
+        && data.lockedLessons is list
+        && data.lockedLessons.size() <= 500
+        && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 100) || data.updatedAt is timestamp)
+        && (!('updatedBy' in data) || data.updatedBy == null || (data.updatedBy is string && data.updatedBy.size() <= 254));
+    }
+
+    // ===============================================================
+    // Leaderboard Rules (Preserved)
+    // ===============================================================
     match /leaderboard/{playerId} {
       allow read: if true;
 
@@ -41,6 +183,57 @@ service cloud.firestore {
           : resource.data.bestScore);
 
       allow delete: if false;
+    }
+
+    // ===============================================================
+    // Users & Private Saved Lessons Rules
+    // ===============================================================
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+
+      allow create, update: if (
+          isAdmin()
+          || (
+            request.auth != null
+            && request.auth.uid == userId
+            && request.resource.data.role == (isAdmin() ? 'admin' : 'student')
+            && uidUnchanged(userId)
+          )
+        )
+        && isValidUserRecord(request.resource.data);
+
+      allow delete: if isAdmin();
+
+      match /private/savedLessons {
+        allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+        allow create, update: if request.auth != null
+          && (request.auth.uid == userId || isAdmin())
+          && isValidSavedLessons(request.resource.data);
+        allow delete: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      }
+    }
+
+    // ===============================================================
+    // User Task/Lesson Access Overrides Rules
+    // ===============================================================
+    match /userAccess/{accessKey} {
+      allow read: if request.auth != null && (
+        isAdmin()
+        || request.auth.uid == accessKey
+        || (request.auth.token.email != null && request.auth.token.email == accessKey)
+        || (resource != null && resource.data.uid == request.auth.uid)
+        || (resource != null && request.auth.token.email != null && resource.data.email == request.auth.token.email)
+      );
+
+      allow create, update: if isAdmin() && isValidUserAccess(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // Default Deny
+    // ===============================================================
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
