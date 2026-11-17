@@ -5,9 +5,15 @@ import {
   getDocs,
   onSnapshot,
   setDoc,
+  writeBatch,
 } from 'firebase/firestore';
 import { auth, db, isFirebaseConfigured } from './firebase';
-import { getUserProgress, type UserProgress } from './storage';
+import {
+  getUserProgress,
+  getUtcDateString,
+  writeProgressToLocalStorage,
+  type UserProgress,
+} from './storage';
 import { isBaseModuleUnlocked } from './progression';
 import type {
   Lesson,
@@ -396,9 +402,12 @@ export async function getAllManagedUsers(): Promise<ManagedUserRecord[]> {
         lastActiveAt:
           typeof data.lastActiveAt === 'string' ? data.lastActiveAt : undefined,
         completedLessons: sanitizeStringArray(data.completedLessons),
+        completedChallenges: sanitizeStringArray(data.completedChallenges),
         totalXp: typeof data.totalXp === 'number' ? data.totalXp : 50,
         unlockedLessons: [],
         lockedLessons: [],
+        progressResetAt:
+          typeof data.progressResetAt === 'string' ? data.progressResetAt : undefined,
       });
     });
 
@@ -439,9 +448,11 @@ export async function getAllManagedUsers(): Promise<ManagedUserRecord[]> {
         joinedAt: existing?.joinedAt || new Date().toISOString().split('T')[0],
         lastActiveAt: existing?.lastActiveAt || data.updatedAt,
         completedLessons: existing?.completedLessons || [],
+        completedChallenges: existing?.completedChallenges || [],
         totalXp: existing?.totalXp ?? 50,
         unlockedLessons,
         lockedLessons,
+        progressResetAt: existing?.progressResetAt,
       });
     });
 
@@ -460,6 +471,7 @@ export async function getAllManagedUsers(): Promise<ManagedUserRecord[]> {
         email,
         role: resolveUserRole(email),
         completedLessons: sanitizeStringArray(item.completedLessons),
+        completedChallenges: sanitizeStringArray(item.completedChallenges),
         unlockedLessons: sanitizeStringArray(access?.unlockedLessons ?? item.unlockedLessons),
         lockedLessons: sanitizeStringArray(access?.lockedLessons ?? item.lockedLessons),
       });
@@ -482,6 +494,7 @@ export async function getAllManagedUsers(): Promise<ManagedUserRecord[]> {
         joinedAt: existing?.joinedAt || access.updatedAt.split('T')[0],
         lastActiveAt: existing?.lastActiveAt || access.updatedAt,
         completedLessons: existing?.completedLessons || [],
+        completedChallenges: existing?.completedChallenges || [],
         totalXp: existing?.totalXp ?? 50,
         unlockedLessons: sanitizeStringArray(access.unlockedLessons),
         lockedLessons: sanitizeStringArray(access.lockedLessons),
@@ -491,8 +504,13 @@ export async function getAllManagedUsers(): Promise<ManagedUserRecord[]> {
 
   // Ensure the admin account is always present in the list
   if (!mergedByEmail.has(ADMIN_EMAIL)) {
+    const currentAdminUid =
+      auth.currentUser && normalizeEmail(auth.currentUser.email) === ADMIN_EMAIL
+        ? auth.currentUser.uid
+        : undefined;
     mergedByEmail.set(ADMIN_EMAIL, {
-      id: ADMIN_EMAIL,
+      id: currentAdminUid || ADMIN_EMAIL,
+      uid: currentAdminUid,
       email: ADMIN_EMAIL,
       name: 'Admin (SwiftLab)',
       avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(ADMIN_EMAIL)}`,
@@ -500,7 +518,8 @@ export async function getAllManagedUsers(): Promise<ManagedUserRecord[]> {
       isVerified: true,
       joinedAt: new Date().toISOString().split('T')[0],
       completedLessons: [],
-      totalXp: 1000,
+      completedChallenges: [],
+      totalXp: 50,
       unlockedLessons: [],
       lockedLessons: [],
     });
@@ -747,4 +766,291 @@ export async function resetUserAccessOverrides(
     lockedLessons: [],
     updatedBy: adminEmail,
   });
+}
+
+function resolveTargetUid(targetUser: { uid?: string; email: string }): string | undefined {
+  if (targetUser.uid && targetUser.uid.trim()) return targetUser.uid.trim();
+  if (
+    auth.currentUser?.uid &&
+    normalizeEmail(auth.currentUser.email) === normalizeEmail(targetUser.email)
+  ) {
+    return auth.currentUser.uid;
+  }
+  return undefined;
+}
+
+function updateActiveLocalProgressAfterAdminReset(
+  targetUser: { uid?: string; email: string },
+  apply: (current: UserProgress) => UserProgress,
+): void {
+  if (typeof window === 'undefined') return;
+  const currentLocal = getUserProgress();
+  const targetUid = resolveTargetUid(targetUser);
+  let activeLocalEmail = '';
+  try {
+    const rawUser = localStorage.getItem('swiftlab_auth_user_v1');
+    if (rawUser) {
+      activeLocalEmail = normalizeEmail((JSON.parse(rawUser) as { email?: string })?.email);
+    }
+  } catch {}
+
+  const isActiveLocalUser =
+    (targetUid && currentLocal.ownerUid === targetUid) ||
+    (targetUid && auth.currentUser?.uid === targetUid) ||
+    (activeLocalEmail && activeLocalEmail === normalizeEmail(targetUser.email)) ||
+    (!isFirebaseConfigured && !activeLocalEmail && !currentLocal.ownerUid);
+
+  if (!isActiveLocalUser) return;
+  const next = apply(currentLocal);
+  writeProgressToLocalStorage(next, { notifyCloudSync: false });
+}
+
+export async function resetSingleLessonProgressForUser(
+  targetUser: ManagedUserRecord,
+  lessonId: string,
+): Promise<ManagedUserRecord> {
+  const email = normalizeEmail(targetUser.email);
+  const targetUid = resolveTargetUid(targetUser);
+  const nowIso = new Date().toISOString();
+
+  const wasLessonCompleted = targetUser.completedLessons.includes(lessonId);
+  const previousChallenges = targetUser.completedChallenges || [];
+  const removedChallenges = previousChallenges.filter(
+    (key) => key === lessonId || key.startsWith(`${lessonId}:`),
+  );
+
+  const nextCompletedLessons = targetUser.completedLessons.filter((id) => id !== lessonId);
+  const nextCompletedChallenges = previousChallenges.filter(
+    (key) => key !== lessonId && !key.startsWith(`${lessonId}:`),
+  );
+  const deductedXp = (wasLessonCompleted ? 25 : 0) + removedChallenges.length * 20;
+  const nextTotalXp = Math.max(50, (targetUser.totalXp ?? 50) - deductedXp);
+
+  if (isFirebaseConfigured) {
+    if (!db || !auth.currentUser) {
+      throw new Error(
+        'Сесія Firebase не активна. Увійдіть повторно як адміністратор, щоб скинути прогрес у Firestore.',
+      );
+    }
+    if (targetUid) {
+      try {
+        const userRef = doc(db, 'users', targetUid);
+        await setDoc(
+          userRef,
+          {
+            uid: targetUid,
+            email,
+            role: resolveUserRole(email),
+            completedLessons: nextCompletedLessons,
+            completedChallenges: nextCompletedChallenges,
+            totalXp: nextTotalXp,
+            progressResetAt: nowIso,
+            updatedAt: nowIso,
+          },
+          { merge: true },
+        );
+      } catch (error) {
+        throw formatFirestoreSyncError(error, 'write');
+      }
+    }
+  }
+
+  const updatedRecord: ManagedUserRecord = {
+    ...targetUser,
+    uid: targetUid || targetUser.uid,
+    completedLessons: nextCompletedLessons,
+    completedChallenges: nextCompletedChallenges,
+    totalXp: nextTotalXp,
+    progressResetAt: nowIso,
+  };
+
+  const registry = readLocalUsersRegistry();
+  registry[email] = updatedRecord;
+  writeLocalUsersRegistry(registry);
+
+  updateActiveLocalProgressAfterAdminReset(targetUser, (current) => ({
+    ...current,
+    completedLessons: current.completedLessons.filter((id) => id !== lessonId),
+    completedChallenges: (current.completedChallenges || []).filter(
+      (key) => key !== lessonId && !key.startsWith(`${lessonId}:`),
+    ),
+    totalXp: nextTotalXp,
+    progressResetAt: nowIso,
+    updatedAt: nowIso,
+  }));
+
+  return updatedRecord;
+}
+
+export async function resetAllLessonsProgressForUser(
+  targetUser: ManagedUserRecord,
+): Promise<ManagedUserRecord> {
+  const email = normalizeEmail(targetUser.email);
+  const targetUid = resolveTargetUid(targetUser);
+  const nowIso = new Date().toISOString();
+  const today = getUtcDateString();
+
+  if (isFirebaseConfigured) {
+    if (!db || !auth.currentUser) {
+      throw new Error(
+        'Сесія Firebase не активна. Увійдіть повторно як адміністратор, щоб скинути прогрес у Firestore.',
+      );
+    }
+    if (targetUid) {
+      try {
+        const userRef = doc(db, 'users', targetUid);
+        await setDoc(
+          userRef,
+          {
+            uid: targetUid,
+            email,
+            role: resolveUserRole(email),
+            completedLessons: [],
+            completedChallenges: [],
+            quizScores: {},
+            totalXp: 50,
+            streakDays: 1,
+            lastActiveDate: today,
+            currentModule: 1,
+            lastLessonId: '',
+            lastPageIndex: 0,
+            progressResetAt: nowIso,
+            updatedAt: nowIso,
+          },
+          { merge: true },
+        );
+      } catch (error) {
+        throw formatFirestoreSyncError(error, 'write');
+      }
+    }
+  }
+
+  const updatedRecord: ManagedUserRecord = {
+    ...targetUser,
+    uid: targetUid || targetUser.uid,
+    completedLessons: [],
+    completedChallenges: [],
+    totalXp: 50,
+    progressResetAt: nowIso,
+  };
+
+  const registry = readLocalUsersRegistry();
+  registry[email] = updatedRecord;
+  writeLocalUsersRegistry(registry);
+
+  updateActiveLocalProgressAfterAdminReset(targetUser, (current) => ({
+    ...current,
+    completedLessons: [],
+    completedChallenges: [],
+    quizScores: {},
+    totalXp: 50,
+    streakDays: 1,
+    lastActiveDate: today,
+    currentModule: 1,
+    lastLessonId: undefined,
+    lastPageIndex: 0,
+    progressResetAt: nowIso,
+    updatedAt: nowIso,
+  }));
+
+  return updatedRecord;
+}
+
+export async function resetAllUsersLessonsProgress(
+  users: ManagedUserRecord[],
+  options: { includeAdmins?: boolean } = {},
+): Promise<{ resetCount: number; updatedUsers: ManagedUserRecord[] }> {
+  const includeAdmins = Boolean(options.includeAdmins);
+  const targets = users.filter((u) => includeAdmins || !isAdminUser(u));
+  const nowIso = new Date().toISOString();
+  const today = getUtcDateString();
+
+  if (isFirebaseConfigured) {
+    if (!db || !auth.currentUser) {
+      throw new Error(
+        'Сесія Firebase не активна. Увійдіть повторно як адміністратор, щоб скинути прогрес усіх користувачів у Firestore.',
+      );
+    }
+
+    const cloudTargets = targets
+      .map((u) => ({ user: u, uid: resolveTargetUid(u) }))
+      .filter((item): item is { user: ManagedUserRecord; uid: string } => Boolean(item.uid));
+
+    try {
+      const BATCH_SIZE = 450;
+      for (let i = 0; i < cloudTargets.length; i += BATCH_SIZE) {
+        const batch = writeBatch(db);
+        const chunk = cloudTargets.slice(i, i + BATCH_SIZE);
+        for (const { user, uid } of chunk) {
+          const email = normalizeEmail(user.email);
+          const userRef = doc(db, 'users', uid);
+          batch.set(
+            userRef,
+            {
+              uid,
+              email,
+              role: resolveUserRole(email),
+              completedLessons: [],
+              completedChallenges: [],
+              quizScores: {},
+              totalXp: 50,
+              streakDays: 1,
+              lastActiveDate: today,
+              currentModule: 1,
+              lastLessonId: '',
+              lastPageIndex: 0,
+              progressResetAt: nowIso,
+              updatedAt: nowIso,
+            },
+            { merge: true },
+          );
+        }
+        await batch.commit();
+      }
+    } catch (error) {
+      throw formatFirestoreSyncError(error, 'write');
+    }
+  }
+
+  const targetEmails = new Set(targets.map((u) => normalizeEmail(u.email)));
+  const registry = readLocalUsersRegistry();
+
+  const updatedUsers = users.map((u) => {
+    const email = normalizeEmail(u.email);
+    if (!targetEmails.has(email)) return u;
+    const nextUser: ManagedUserRecord = {
+      ...u,
+      uid: resolveTargetUid(u) || u.uid,
+      completedLessons: [],
+      completedChallenges: [],
+      totalXp: 50,
+      progressResetAt: nowIso,
+    };
+    registry[email] = nextUser;
+    return nextUser;
+  });
+
+  writeLocalUsersRegistry(registry);
+
+  for (const target of targets) {
+    updateActiveLocalProgressAfterAdminReset(target, (current) => ({
+      ...current,
+      completedLessons: [],
+      completedChallenges: [],
+      quizScores: {},
+      totalXp: 50,
+      streakDays: 1,
+      lastActiveDate: today,
+      currentModule: 1,
+      lastLessonId: undefined,
+      lastPageIndex: 0,
+      progressResetAt: nowIso,
+      updatedAt: nowIso,
+    }));
+  }
+
+  return {
+    resetCount: targets.length,
+    updatedUsers,
+  };
 }

@@ -194,9 +194,11 @@ export interface ManagedUserRecord {
   joinedAt?: string;
   lastActiveAt?: string;
   completedLessons: string[];
+  completedChallenges?: string[];
   totalXp?: number;
   unlockedLessons: string[];
   lockedLessons: string[];
+  progressResetAt?: string;
 }
 
 export interface Achievement {

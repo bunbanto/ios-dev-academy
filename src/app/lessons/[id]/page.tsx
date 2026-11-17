@@ -37,7 +37,7 @@ import LessonSidebar, { InPageSection } from '@/components/LessonSidebar';
 import { getUserProgress, markLessonCompleted, recordLessonVisit } from '@/lib/storage';
 import { useLocale } from '@/i18n/LocaleContext';
 import { localizeContent } from '@/i18n/content';
-import { isLessonUnlocked } from '@/lib/progression';
+import { isLessonChallengeSolved, isLessonUnlocked } from '@/lib/progression';
 import { useAuth } from '@/context/AuthContext';
 import { getSavedLessonIds, toggleSavedLesson } from '@/lib/saved-lessons';
 import { syncUserToRegistry } from '@/lib/access';
@@ -52,6 +52,7 @@ export default function LessonDetailPage() {
   const lessonIndex = lessons.findIndex((l) => l.id === lessonId);
 
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [completedChallenges, setCompletedChallenges] = useState<string[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [comparisonTab, setComparisonTab] = useState<'good' | 'bad'>('good');
@@ -93,6 +94,7 @@ export default function LessonDetailPage() {
     const syncProgressState = () => {
       const progress = getUserProgress();
       setCompletedLessons(progress.completedLessons || []);
+      setCompletedChallenges(progress.completedChallenges || []);
       const targetLesson = LESSONS.find((l) => l.id === lessonId);
       setIsModuleAccessGranted(
         targetLesson
@@ -265,7 +267,16 @@ export default function LessonDetailPage() {
     }
   };
 
+  const isChallengeSolved = isLessonChallengeSolved(lesson, completedChallenges, { isAdmin });
+
   const handleComplete = () => {
+    if (!isAdmin && !isChallengeSolved) {
+      const challengeEl = document.getElementById('challenge');
+      if (challengeEl) {
+        challengeEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      return;
+    }
     const updatedProgress = markLessonCompleted(lesson.id, 25);
     setIsCompleted(true);
     setCompletedLessons((prev) => Array.from(new Set([...prev, lesson.id])));
@@ -911,13 +922,29 @@ export default function LessonDetailPage() {
 
           {/* Completion Action (Displayed either on Single Page lessons OR the final page of Multi-Page lessons) */}
           {(!hasPages || activePageIndex === pages.length - 1) && (
-            <div id="completion" className="glass-card p-6 sm:p-8 rounded-2xl border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-neutral-900 via-neutral-900/80 to-neutral-900 scroll-mt-24">
+            <div
+              id="completion"
+              className={`glass-card p-6 sm:p-8 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-neutral-900 via-neutral-900/80 to-neutral-900 scroll-mt-24 ${
+                !isCompleted && !isChallengeSolved
+                  ? 'border-amber-500/30'
+                  : 'border-white/10'
+              }`}
+            >
               <div className="space-y-1 text-center sm:text-left">
                 <h4 className="text-lg font-bold text-white flex items-center justify-center sm:justify-start gap-2">
                   {isCompleted ? (
                     <>
                       <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                       <span>{t("Урок успішно пройдено!", locale)}</span>
+                    </>
+                  ) : !isChallengeSolved ? (
+                    <>
+                      <LockKeyhole className="w-5 h-5 text-amber-400" />
+                      <span>
+                        {locale === 'en'
+                          ? 'Pass AI verification to complete this lesson'
+                          : 'Пройдіть AI-перевірку для завершення уроку'}
+                      </span>
                     </>
                   ) : (
                     <>
@@ -929,22 +956,58 @@ export default function LessonDetailPage() {
                 <p className="text-xs text-neutral-400">
                   {isCompleted
                     ? t("Ви заробили +25 XP за цей урок. Продовжуйте до наступної теми!", locale)
+                    : !isChallengeSolved
+                    ? locale === 'en'
+                      ? 'Solve the practical challenge above and verify it with AI first to unlock lesson completion and the next module.'
+                      : 'Спочатку розвʼяжіть практичне завдання вище та пройдіть AI-перевірку, щоб завершити урок і відкрити наступний модуль.'
+                    : isAdmin && !isLessonChallengeSolved(lesson, completedChallenges, { isAdmin: false })
+                    ? locale === 'en'
+                      ? 'Administrator access: you can complete this lesson without passing the student check.'
+                      : 'Режим адміністратора: ви можете завершити урок без обовʼязкової перевірки.'
                     : t("Натисніть кнопку нижче, щоб зафіксувати прогрес та отримати +25 XP.", locale)}
                 </p>
               </div>
 
-              <button
-                onClick={handleComplete}
-                disabled={isCompleted}
-                className={`px-6 py-3.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-lg whitespace-nowrap ${
-                  isCompleted
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 cursor-default'
-                    : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20 active:scale-95'
-                }`}
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>{isCompleted ? t("Урок пройдено", locale) : t("Відзначити як завершений (+25 XP)", locale)}</span>
-              </button>
+              {!isCompleted && !isChallengeSolved ? (
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const challengeEl = document.getElementById('challenge');
+                      if (challengeEl) {
+                        challengeEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }}
+                    className="px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 transition-all shadow-lg shadow-amber-500/20 whitespace-nowrap"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>
+                      {locale === 'en' ? 'Go to AI challenge ↑' : 'Перейти до AI-перевірки ↑'}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled
+                    className="px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 bg-neutral-800 text-neutral-500 border border-white/10 cursor-not-allowed whitespace-nowrap"
+                  >
+                    <LockKeyhole className="w-4 h-4" />
+                    <span>{locale === 'en' ? 'Locked (+25 XP)' : 'Ще заблоковано (+25 XP)'}</span>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleComplete}
+                  disabled={isCompleted}
+                  className={`px-6 py-3.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-lg whitespace-nowrap ${
+                    isCompleted
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 cursor-default'
+                      : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20 active:scale-95'
+                  }`}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>{isCompleted ? t("Урок пройдено", locale) : t("Відзначити як завершений (+25 XP)", locale)}</span>
+                </button>
+              )}
             </div>
           )}
 

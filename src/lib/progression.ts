@@ -47,3 +47,24 @@ export function isModuleUnlocked(
 
   return moduleLessons.some((lesson) => isLessonUnlocked(lesson, lessons, completedIds, options));
 }
+
+export function lessonHasChallenge(lesson?: Lesson | null): boolean {
+  if (!lesson) return false;
+  return Boolean(
+    lesson.content?.challenge ||
+      lesson.pages?.some((page) => Boolean(page.content?.challenge)),
+  );
+}
+
+export function isLessonChallengeSolved(
+  lesson: Lesson | undefined | null,
+  completedChallenges: string[] = [],
+  options?: { isAdmin?: boolean },
+): boolean {
+  if (options?.isAdmin) return true;
+  if (!lesson || !lessonHasChallenge(lesson)) return true;
+
+  return completedChallenges.some(
+    (key) => key === lesson.id || key.startsWith(`${lesson.id}:`),
+  );
+}

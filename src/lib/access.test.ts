@@ -8,6 +8,9 @@ import {
   getRoleLabel,
   isAdminUser,
   persistUserAccessControl,
+  resetAllLessonsProgressForUser,
+  resetAllUsersLessonsProgress,
+  resetSingleLessonProgressForUser,
   resolveUserRole,
   setAllLessonsAccessForUser,
   setLessonAccessForUser,
@@ -26,6 +29,7 @@ vi.mock('firebase/firestore', async () => {
     getDoc: vi.fn(),
     getDocs: vi.fn(),
     setDoc: vi.fn(),
+    writeBatch: vi.fn(),
   };
 });
 
@@ -161,5 +165,62 @@ describe('user roles and task access control', () => {
     vi.mocked(firestore.getDocs).mockRejectedValueOnce({ code: 'permission-denied' });
 
     await expect(getAllManagedUsers()).rejects.toThrow(/permission-denied/);
+  });
+
+  it('allows admin to reset a single lesson, all lessons for one user, or all users', async () => {
+    const adminUser = {
+      id: 'admin-uid',
+      uid: 'admin-uid',
+      email: ADMIN_EMAIL,
+      name: 'Admin',
+      role: 'admin' as const,
+      completedLessons: ['swift-basics-variables'],
+      completedChallenges: ['swift-basics-variables'],
+      totalXp: 95,
+      unlockedLessons: [],
+      lockedLessons: [],
+    };
+    const studentUser = {
+      id: 'student-uid',
+      uid: 'student-uid',
+      email: 'student@gmail.com',
+      name: 'Student',
+      role: 'student' as const,
+      completedLessons: ['swift-basics-variables', 'swift-control-flow'],
+      completedChallenges: ['swift-basics-variables', 'swift-control-flow:lab'],
+      totalXp: 140,
+      unlockedLessons: [],
+      lockedLessons: [],
+    };
+
+    const afterSingle = await resetSingleLessonProgressForUser(
+      studentUser,
+      'swift-basics-variables',
+    );
+    expect(afterSingle.completedLessons).toEqual(['swift-control-flow']);
+    expect(afterSingle.completedChallenges).toEqual(['swift-control-flow:lab']);
+    expect(afterSingle.totalXp).toBe(95);
+    expect(afterSingle.progressResetAt).toBeTruthy();
+
+    const afterUserReset = await resetAllLessonsProgressForUser(studentUser);
+    expect(afterUserReset.completedLessons).toEqual([]);
+    expect(afterUserReset.completedChallenges).toEqual([]);
+    expect(afterUserReset.totalXp).toBe(50);
+
+    // Bulk reset students only
+    const studentsOnly = await resetAllUsersLessonsProgress([adminUser, studentUser], {
+      includeAdmins: false,
+    });
+    expect(studentsOnly.resetCount).toBe(1);
+    expect(studentsOnly.updatedUsers[0].completedLessons).toEqual(['swift-basics-variables']);
+    expect(studentsOnly.updatedUsers[1].completedLessons).toEqual([]);
+
+    // Bulk reset all users including admin
+    const allReset = await resetAllUsersLessonsProgress([adminUser, studentUser], {
+      includeAdmins: true,
+    });
+    expect(allReset.resetCount).toBe(2);
+    expect(allReset.updatedUsers[0].completedLessons).toEqual([]);
+    expect(allReset.updatedUsers[1].completedLessons).toEqual([]);
   });
 });

@@ -60,6 +60,10 @@ export function parseCloudProgress(data: Record<string, unknown>, uid: string): 
       typeof data.lastPageIndex === 'number' && Number.isFinite(data.lastPageIndex) && data.lastPageIndex >= 0
         ? Math.floor(data.lastPageIndex)
         : undefined,
+    progressResetAt:
+      typeof data.progressResetAt === 'string' && data.progressResetAt.trim()
+        ? data.progressResetAt.trim()
+        : undefined,
     updatedAt:
       typeof data.updatedAt === 'string' ? data.updatedAt : new Date().toISOString(),
   };
@@ -96,6 +100,23 @@ export function mergeUserProgress(
 
   // Never merge another user's leftover localStorage into this user's cloud profile
   if (isDifferentOwner) {
+    return {
+      merged: { ...cloud, ownerUid: uid },
+      shouldPushToCloud: false,
+    };
+  }
+
+  // If an admin reset progress on the server AFTER the user's last local activity/reset,
+  // treat cloud as the authoritative baseline so stale localStorage never resurrects reset lessons.
+  const cloudResetMs = cloud.progressResetAt ? Date.parse(cloud.progressResetAt) : 0;
+  const localResetMs = local.progressResetAt ? Date.parse(local.progressResetAt) : 0;
+  const localUpdatedMs = local.updatedAt ? Date.parse(local.updatedAt) : 0;
+  if (
+    Number.isFinite(cloudResetMs) &&
+    cloudResetMs > 0 &&
+    (!Number.isFinite(localResetMs) || cloudResetMs > localResetMs) &&
+    (!Number.isFinite(localUpdatedMs) || localUpdatedMs <= cloudResetMs)
+  ) {
     return {
       merged: { ...cloud, ownerUid: uid },
       shouldPushToCloud: false,
@@ -171,6 +192,9 @@ export function mergeUserProgress(
     ? local.lastPageIndex ?? cloud.lastPageIndex
     : cloud.lastPageIndex ?? local.lastPageIndex;
 
+  const effectiveResetAt =
+    cloudResetMs >= localResetMs ? cloud.progressResetAt : local.progressResetAt;
+
   const merged: UserProgress = {
     ownerUid: uid,
     completedLessons: mergedLessons,
@@ -183,6 +207,7 @@ export function mergeUserProgress(
     currentModule: Math.max(cloud.currentModule || 1, local.currentModule || 1),
     ...(lastLessonId ? { lastLessonId } : {}),
     ...(typeof lastPageIndex === 'number' ? { lastPageIndex } : {}),
+    ...(effectiveResetAt ? { progressResetAt: effectiveResetAt } : {}),
     updatedAt: localIsNewer ? local.updatedAt : cloud.updatedAt || new Date().toISOString(),
   };
 
@@ -232,6 +257,7 @@ export async function pushUserProgressToCloud(
       ...(typeof progress.lastPageIndex === 'number'
         ? { lastPageIndex: progress.lastPageIndex }
         : {}),
+      ...(progress.progressResetAt ? { progressResetAt: progress.progressResetAt } : {}),
       lastActiveAt: new Date().toISOString(),
       updatedAt: progress.updatedAt || new Date().toISOString(),
     },

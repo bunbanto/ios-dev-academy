@@ -10,6 +10,7 @@ export interface UserProgress {
   currentModule: number;
   lastLessonId?: string;
   lastPageIndex?: number;
+  progressResetAt?: string;
   updatedAt?: string;
 }
 

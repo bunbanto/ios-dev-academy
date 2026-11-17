@@ -44,6 +44,7 @@ rules_version = '2';
 //   - lastPageIndex: int (optional, 0..100)
 //   - unlockedLessons: list<string> (optional, <= 500 items)
 //   - lockedLessons: list<string> (optional, <= 500 items)
+//   - progressResetAt: string (optional, <= 100 chars)
 //   - updatedAt: string | timestamp (optional)
 //
 // Subcollection: users/{userId}/private/savedLessons
@@ -108,7 +109,8 @@ service cloud.firestore {
           'role', 'bio', 'githubUrl', 'goal', 'completedLessons',
           'completedChallenges', 'quizScores', 'totalXp', 'streakDays',
           'lastActiveDate', 'bookmarks', 'currentModule', 'lastLessonId',
-          'lastPageIndex', 'unlockedLessons', 'lockedLessons', 'updatedAt'
+          'lastPageIndex', 'unlockedLessons', 'lockedLessons', 'progressResetAt',
+          'updatedAt'
         ])
         && data.role in ['admin', 'student']
         && (!('id' in data) || (data.id is string && data.id.size() <= 128))
@@ -136,6 +138,7 @@ service cloud.firestore {
         && (!('lastPageIndex' in data) || (data.lastPageIndex is int && data.lastPageIndex >= 0 && data.lastPageIndex <= 100))
         && (!('unlockedLessons' in data) || (data.unlockedLessons is list && data.unlockedLessons.size() <= 500))
         && (!('lockedLessons' in data) || (data.lockedLessons is list && data.lockedLessons.size() <= 500))
+        && (!('progressResetAt' in data) || (data.progressResetAt is string && data.progressResetAt.size() <= 100))
         && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 100) || data.updatedAt is timestamp);
     }
 

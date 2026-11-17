@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { LESSONS } from '../data/lessons/index';
 import { LESSONS_EN } from '../data/lessons/en/index';
 import { findChallengeContext } from './server/challenge-checker';
+import { isLessonChallengeSolved, lessonHasChallenge } from './progression';
 import { computeUpdatedStreak, createDefaultProgress, type UserProgress } from './storage';
 import { mergeUserProgress } from './progress-sync';
 
@@ -133,6 +134,60 @@ describe('module challenge coverage and cross-device progress sync', () => {
     expect(merged.ownerUid).toBe('uid-new');
     expect(merged.completedLessons).toEqual([]);
     expect(merged.totalXp).toBe(50);
+  });
+
+  it('requires AI challenge completion for students before marking a lesson complete, while allowing admin bypass', () => {
+    const lesson = LESSONS[0];
+    expect(lessonHasChallenge(lesson)).toBe(true);
+    expect(isLessonChallengeSolved(lesson, [], { isAdmin: false })).toBe(false);
+    expect(isLessonChallengeSolved(lesson, [lesson.id], { isAdmin: false })).toBe(true);
+    expect(
+      isLessonChallengeSolved(lesson, [`${lesson.id}:vars-playground-lab`], {
+        isAdmin: false,
+      }),
+    ).toBe(true);
+    expect(isLessonChallengeSolved(lesson, [], { isAdmin: true })).toBe(true);
+  });
+
+  it('respects admin progressResetAt so stale localStorage never resurrects reset lessons', () => {
+    const staleLocal: UserProgress = {
+      ownerUid: 'uid-1',
+      completedLessons: ['swift-basics-variables', 'swift-control-flow'],
+      completedChallenges: ['swift-basics-variables'],
+      quizScores: { 'quiz-1': 8 },
+      totalXp: 260,
+      streakDays: 5,
+      lastActiveDate: '2026-11-17',
+      bookmarks: ['swift-optionals-unwrapping'],
+      currentModule: 2,
+      updatedAt: '2026-11-17T12:00:00.000Z',
+    };
+
+    const cloudAfterAdminReset: UserProgress = {
+      ownerUid: 'uid-1',
+      completedLessons: [],
+      completedChallenges: [],
+      quizScores: {},
+      totalXp: 50,
+      streakDays: 1,
+      lastActiveDate: '2026-11-17',
+      bookmarks: ['swift-optionals-unwrapping'],
+      currentModule: 1,
+      progressResetAt: '2026-11-17T13:00:00.000Z',
+      updatedAt: '2026-11-17T13:00:00.000Z',
+    };
+
+    const { merged, shouldPushToCloud } = mergeUserProgress(
+      staleLocal,
+      cloudAfterAdminReset,
+      'uid-1',
+    );
+
+    expect(shouldPushToCloud).toBe(false);
+    expect(merged.completedLessons).toEqual([]);
+    expect(merged.completedChallenges).toEqual([]);
+    expect(merged.totalXp).toBe(50);
+    expect(merged.progressResetAt).toBe('2026-11-17T13:00:00.000Z');
   });
 
   it('updates daily learning streak accurately across consecutive and missed days', () => {

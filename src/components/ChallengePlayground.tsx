@@ -71,7 +71,9 @@ export default function ChallengePlayground({
 
   const [showHint, setShowHint] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
+  const [attemptsCount, setAttemptsCount] = useState(0);
   const [solvedKeys, setSolvedKeys] = useState<string[]>([]);
+  const attemptsStorageKey = `swiftlab_challenge_attempts_v1_${lessonId}`;
 
   const [quotaInfo, setQuotaInfo] = useState<{
     configured: boolean;
@@ -109,6 +111,13 @@ export default function ChallengePlayground({
     setApiError(null);
     setShowHint(false);
     setShowSolution(false);
+
+    try {
+      const savedAttempts = Number(localStorage.getItem(attemptsStorageKey) || '0');
+      setAttemptsCount(Number.isFinite(savedAttempts) && savedAttempts > 0 ? savedAttempts : 0);
+    } catch {
+      setAttemptsCount(0);
+    }
 
     try {
       const savedDraft =
@@ -290,6 +299,13 @@ export default function ChallengePlayground({
 
       const result = payload as ChallengeReviewResult;
       setReviewResult(result);
+      if (mode === 'main') {
+        const nextAttempts = attemptsCount + 1;
+        setAttemptsCount(nextAttempts);
+        try {
+          localStorage.setItem(attemptsStorageKey, String(nextAttempts));
+        } catch {}
+      }
       if (typeof result.remainingQuota === 'number' && typeof result.dailyLimit === 'number') {
         setQuotaInfo({
           configured: true,
@@ -630,17 +646,39 @@ export default function ChallengePlayground({
             {showHint ? t('Сховати підказку', locale) : t('Показати підказку', locale)}
           </button>
 
-          {mode === 'main' && (
-            <button
-              type="button"
-              onClick={() => setShowSolution(!showSolution)}
-              className="px-3.5 py-2 rounded-xl bg-ios-blue/15 text-ios-blue hover:bg-ios-blue/25 text-xs font-medium border border-ios-blue/30 transition-colors"
-            >
-              {showSolution
-                ? t('Сховати розвʼязок', locale)
-                : t('Показати розвʼязок', locale)}
-            </button>
-          )}
+          {mode === 'main' && (() => {
+            const canViewSolution = isAdmin || isCurrentSolved || attemptsCount >= 2;
+            return (
+              <button
+                type="button"
+                disabled={!canViewSolution}
+                onClick={() => setShowSolution(!showSolution)}
+                title={
+                  canViewSolution
+                    ? undefined
+                    : locale === 'en'
+                    ? 'Make at least 2 AI check attempts first to unlock the reference solution.'
+                    : 'Зробіть хоча б 2 спроби AI-перевірки, щоб відкрити еталонне рішення.'
+                }
+                className={`px-3.5 py-2 rounded-xl text-xs font-medium border transition-colors flex items-center gap-1.5 ${
+                  canViewSolution
+                    ? 'bg-ios-blue/15 text-ios-blue hover:bg-ios-blue/25 border-ios-blue/30'
+                    : 'bg-neutral-900 text-neutral-500 border-white/10 cursor-not-allowed'
+                }`}
+              >
+                {!canViewSolution && <LockKeyhole className="w-3.5 h-3.5" />}
+                <span>
+                  {!canViewSolution
+                    ? locale === 'en'
+                      ? `Solution (${attemptsCount}/2 tries)`
+                      : `Розвʼязок (${attemptsCount}/2 спроб)`
+                    : showSolution
+                    ? t('Сховати розвʼязок', locale)
+                    : t('Показати розвʼязок', locale)}
+                </span>
+              </button>
+            );
+          })()}
         </div>
 
         {/* Extra AI Practice Generator */}
