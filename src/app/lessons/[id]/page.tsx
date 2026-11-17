@@ -32,8 +32,9 @@ import {
 import confetti from 'canvas-confetti';
 import { LESSONS } from '@/data/lessons/index';
 import CodeBlock from '@/components/CodeBlock';
+import ChallengePlayground from '@/components/ChallengePlayground';
 import LessonSidebar, { InPageSection } from '@/components/LessonSidebar';
-import { getUserProgress, markLessonCompleted } from '@/lib/storage';
+import { getUserProgress, markLessonCompleted, recordLessonVisit } from '@/lib/storage';
 import { useLocale } from '@/i18n/LocaleContext';
 import { localizeContent } from '@/i18n/content';
 import { isLessonUnlocked } from '@/lib/progression';
@@ -53,8 +54,6 @@ export default function LessonDetailPage() {
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [showHint, setShowHint] = useState(false);
-  const [showSolution, setShowSolution] = useState(false);
   const [comparisonTab, setComparisonTab] = useState<'good' | 'bad'>('good');
   const [accessCheckedForLesson, setAccessCheckedForLesson] = useState<string | null>(null);
   const [isModuleAccessGranted, setIsModuleAccessGranted] = useState(true);
@@ -72,7 +71,26 @@ export default function LessonDetailPage() {
   const currentContent = currentPage ? currentPage.content : lesson?.content;
 
   useEffect(() => {
-    if (lessonId) {
+    if (!lessonId) return;
+    const progress = getUserProgress();
+    const targetLesson = LESSONS.find((l) => l.id === lessonId);
+    const totalPages = targetLesson?.pages?.length ?? 0;
+    const restoredPage =
+      progress.lastLessonId === lessonId &&
+      typeof progress.lastPageIndex === 'number' &&
+      totalPages > 0
+        ? Math.max(0, Math.min(totalPages - 1, progress.lastPageIndex))
+        : 0;
+
+    setIsBookmarked(false);
+    setCheckpointAnswers({});
+    setActivePageIndex(restoredPage);
+    setCompletedPageIndices([]);
+  }, [lessonId]);
+
+  useEffect(() => {
+    if (!lessonId) return;
+    const syncProgressState = () => {
       const progress = getUserProgress();
       setCompletedLessons(progress.completedLessons || []);
       const targetLesson = LESSONS.find((l) => l.id === lessonId);
@@ -87,14 +105,28 @@ export default function LessonDetailPage() {
       );
       setAccessCheckedForLesson(lessonId);
       setIsCompleted(progress.completedLessons.includes(lessonId));
-      setIsBookmarked(false);
-      setShowHint(false);
-      setShowSolution(false);
-      setCheckpointAnswers({});
-      setActivePageIndex(0);
-      setCompletedPageIndices([]);
-    }
+    };
+
+    syncProgressState();
+    window.addEventListener('storage', syncProgressState);
+    window.addEventListener('swiftlab_progress_change', syncProgressState);
+    window.addEventListener('swiftlab_auth_change', syncProgressState);
+    return () => {
+      window.removeEventListener('storage', syncProgressState);
+      window.removeEventListener('swiftlab_progress_change', syncProgressState);
+      window.removeEventListener('swiftlab_auth_change', syncProgressState);
+    };
   }, [lessonId, lesson?.module, isAdmin, accessControl.unlockedLessons, accessControl.lockedLessons]);
+
+  useEffect(() => {
+    if (
+      lesson?.id &&
+      accessCheckedForLesson === lesson.id &&
+      isModuleAccessGranted
+    ) {
+      recordLessonVisit(lesson.id, activePageIndex, lesson.module);
+    }
+  }, [lesson?.id, lesson?.module, accessCheckedForLesson, isModuleAccessGranted, activePageIndex]);
 
   useEffect(() => {
     let active = true;
@@ -212,8 +244,6 @@ export default function LessonDetailPage() {
 
   const handleSelectPage = (index: number) => {
     setActivePageIndex(index);
-    setShowHint(false);
-    setShowSolution(false);
     const topEl = document.getElementById('lesson-content-top');
     if (topEl) {
       topEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -339,7 +369,7 @@ export default function LessonDetailPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-neutral-400">
               <span className="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 font-semibold text-neutral-300">
-                Модуль {lesson.module}
+                {locale === 'en' ? 'Module' : 'Модуль'} {lesson.module}
               </span>
               <span>/</span>
               <span className="text-white font-medium truncate max-w-[200px] sm:max-w-md">
@@ -425,7 +455,7 @@ export default function LessonDetailPage() {
                   const isDone = completedPageIndices.includes(idx);
                   return (
                     <button
-                      key={p.id || idx}
+                      key={`step-${idx}`}
                       onClick={() => handleSelectPage(idx)}
                       className={`flex items-center gap-2 p-2 sm:p-2.5 rounded-xl text-left border transition-all text-xs ${
                         isCurrent
@@ -838,45 +868,14 @@ export default function LessonDetailPage() {
             </div>
           )}
 
-          {/* Mini Practical Challenge */}
+          {/* Mini Practical Challenge (Interactive Editor + Gemini AI Review) */}
           {currentContent?.challenge && (
-            <div id="challenge" className="glass-panel p-6 rounded-2xl border border-ios-blue/30 space-y-4 scroll-mt-24">
-              <div className="flex items-center gap-2 text-ios-blue text-sm font-bold">
-                <Lightbulb className="w-5 h-5" />
-                <span>{t("Практичне мікрозавдання", locale)}</span>
-              </div>
-
-              <p className="text-sm text-neutral-200 font-medium leading-relaxed">
-                {currentContent.challenge.task}
-              </p>
-
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <button
-                  onClick={() => setShowHint(!showHint)}
-                  className="px-3.5 py-1.5 rounded-lg bg-neutral-800 text-neutral-300 hover:text-white text-xs font-medium border border-white/10 transition-colors"
-                >
-                  {showHint ? t("Сховати підказку", locale) : t("Показати підказку", locale)}
-                </button>
-                <button
-                  onClick={() => setShowSolution(!showSolution)}
-                  className="px-3.5 py-1.5 rounded-lg bg-ios-blue/20 text-ios-blue hover:bg-ios-blue/30 text-xs font-medium border border-ios-blue/30 transition-colors"
-                >
-                  {showSolution ? t("Сховати розвʼязок", locale) : t("Показати розвʼязок", locale)}
-                </button>
-              </div>
-
-              {showHint && (
-                <div className="p-3.5 bg-neutral-900 rounded-xl text-xs text-neutral-300 border border-white/5">
-                  💡 <strong>{t("Підказка:", locale)}</strong> {currentContent.challenge.hint}
-                </div>
-              )}
-
-              {showSolution && (
-                <div className="pt-2">
-                  <CodeBlock code={currentContent.challenge.solution} filename="Solution.swift" />
-                </div>
-              )}
-            </div>
+            <ChallengePlayground
+              lessonId={lesson.id}
+              pageId={currentPage?.id}
+              challenge={currentContent.challenge}
+              locale={locale}
+            />
           )}
 
           {/* Intra-Lesson Page Navigation Buttons (for Multi-Page Topics) */}

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getUserProgress,
+  markChallengeCompleted,
   markLessonCompleted,
   saveUserProgress,
   toggleBookmark,
@@ -50,6 +51,12 @@ describe('user progress storage', () => {
     expect(markLessonCompleted('lesson-1', 30).totalXp).toBe(80);
     expect(markLessonCompleted('lesson-1', 30).totalXp).toBe(80);
     expect(getUserProgress().completedLessons).toEqual(['lesson-1']);
+  });
+
+  it('awards challenge XP once per unique challenge key', () => {
+    expect(markChallengeCompleted('lesson-1:step-5', 20).totalXp).toBe(70);
+    expect(markChallengeCompleted('lesson-1:step-5', 20).totalXp).toBe(70);
+    expect(getUserProgress().completedChallenges).toEqual(['lesson-1:step-5']);
   });
 
   it('toggles a bookmark on and off', () => {

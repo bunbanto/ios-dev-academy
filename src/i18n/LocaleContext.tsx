@@ -9,9 +9,15 @@ const LocaleContext = createContext<{ locale: Locale; setLocale: (locale: Locale
 export function LocaleProvider({ children, initialLocale }: { children: ReactNode; initialLocale: Locale }) {
   const [locale, updateLocale] = useState<Locale>(initialLocale);
   const setLocale = (nextLocale: Locale) => {
+    const prevScrollY = typeof window !== 'undefined' ? window.scrollY : 0;
     document.cookie = `swiftlab_locale=${nextLocale}; path=/; max-age=31536000; samesite=lax`;
     document.documentElement.lang = nextLocale;
     updateLocale(nextLocale);
+    if (typeof window !== 'undefined' && prevScrollY > 0) {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: prevScrollY, behavior: 'instant' as ScrollBehavior });
+      });
+    }
   };
 
   return <LocaleContext.Provider value={{ locale, setLocale }}>{children}</LocaleContext.Provider>;

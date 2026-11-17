@@ -17,7 +17,7 @@ import {
 import confetti from 'canvas-confetti';
 import { QUIZ_QUESTIONS } from '@/data/quiz';
 import CodeBlock from '@/components/CodeBlock';
-import { getUserProgress, saveUserProgress } from '@/lib/storage';
+import { recordQuizCompletion } from '@/lib/storage';
 import { useLocale } from '@/i18n/LocaleContext';
 import { localizeContent } from '@/i18n/content';
 import { generateQuizSet } from '@/lib/quiz';
@@ -74,12 +74,7 @@ export default function QuizPage() {
       isFinishing.current = true;
       setIsFinished(true);
       const correctAnswers = score + (selectedOption === currentQ.correctAnswer ? 1 : 0);
-      const earnedXp = correctAnswers * 20;
-      const progress = getUserProgress();
-      progress.totalXp += earnedXp;
-      progress.quizScores ??= {};
-      progress.quizScores[`quiz-${Date.now()}`] = correctAnswers;
-      saveUserProgress(progress);
+      recordQuizCompletion(correctAnswers, 20);
 
       if (user && isFirebaseReady) {
         setLeaderboardStatus('saving');

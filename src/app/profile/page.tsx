@@ -92,9 +92,11 @@ function ProfileContent() {
     const handleStorage = () => setProgress(getUserProgress());
     window.addEventListener('storage', handleStorage);
     window.addEventListener('swiftlab_auth_change', handleStorage);
+    window.addEventListener('swiftlab_progress_change', handleStorage);
     return () => {
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('swiftlab_auth_change', handleStorage);
+      window.removeEventListener('swiftlab_progress_change', handleStorage);
     };
   }, []);
 

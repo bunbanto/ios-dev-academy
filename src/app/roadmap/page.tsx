@@ -31,7 +31,16 @@ export default function RoadmapPage() {
   const [progress, setProgress] = useState<UserProgress | null>(null);
 
   useEffect(() => {
-    setProgress(getUserProgress());
+    const syncProgress = () => setProgress(getUserProgress());
+    syncProgress();
+    window.addEventListener('storage', syncProgress);
+    window.addEventListener('swiftlab_progress_change', syncProgress);
+    window.addEventListener('swiftlab_auth_change', syncProgress);
+    return () => {
+      window.removeEventListener('storage', syncProgress);
+      window.removeEventListener('swiftlab_progress_change', syncProgress);
+      window.removeEventListener('swiftlab_auth_change', syncProgress);
+    };
   }, []);
 
   const completedIds = progress?.completedLessons || [];

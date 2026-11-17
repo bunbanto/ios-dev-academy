@@ -1,8 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react';
 import type { UserAccessControl, UserProfile } from '@/types';
-import { getUserProgress, saveUserProgress } from '@/lib/storage';
+import { awardBonusXp, clearLocalUserProgress } from '@/lib/storage';
+import { subscribeToCloudUserProgress } from '@/lib/progress-sync';
 import { auth, googleProvider, isFirebaseConfigured } from '@/lib/firebase';
 import {
   getLocalUserAccessControl,
@@ -101,6 +102,8 @@ function toUserProfile(fbUser: FirebaseUser, previous: Partial<UserProfile> | nu
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { locale } = useLocale();
+  const localeRef = useRef(locale);
+  localeRef.current = locale;
   const [user, setUser] = useState<UserProfile | null>(null);
   const [accessControl, setAccessControl] = useState<UserAccessControl>(() =>
     getLocalUserAccessControl(null),
@@ -129,10 +132,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   useEffect(() => {
+    const activeLocale = localeRef.current;
     try {
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);
       if (stored) {
-        const parsed = normalizeStoredUser(JSON.parse(stored), locale);
+        const parsed = normalizeStoredUser(JSON.parse(stored), activeLocale);
         if (parsed) {
           setUser(parsed);
           localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(parsed));
@@ -159,26 +163,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const stored = localStorage.getItem(AUTH_STORAGE_KEY);
         if (stored) previous = JSON.parse(stored);
       } catch {}
-      persistUser(toUserProfile(fbUser, previous, locale));
+      persistUser(toUserProfile(fbUser, previous, localeRef.current));
     });
 
     return () => unsubscribe();
-  }, [locale, persistUser]);
+  }, [persistUser]);
 
-  // Subscribe to access control changes for the current user
+  // Subscribe to access control and cross-device cloud progress for the current user
   useEffect(() => {
     let active = true;
     getUserAccessControl(user).then((ctrl) => {
       if (active) setAccessControl(ctrl);
     });
 
-    const unsubscribe = subscribeToUserAccess(user, (ctrl) => {
+    const unsubscribeAccess = subscribeToUserAccess(user, (ctrl) => {
       if (active) setAccessControl(ctrl);
     });
 
+    const unsubscribeProgress = user?.id
+      ? subscribeToCloudUserProgress(user.id)
+      : () => {};
+
     return () => {
       active = false;
-      unsubscribe();
+      unsubscribeAccess();
+      unsubscribeProgress();
     };
   }, [user]);
 
@@ -204,9 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await signInWithPopup(auth, googleProvider);
       const profile = toUserProfile(result.user, user?.id === result.user.uid ? user : null, locale);
       if (getAdditionalUserInfo(result)?.isNewUser) {
-        const progress = getUserProgress();
-        progress.totalXp += 50;
-        saveUserProgress(progress);
+        awardBonusXp(50);
       }
       persistUser(profile);
       closeAuthModal();
@@ -264,9 +271,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const wasVerified = user.isVerified;
     const verifiedUser = toUserProfile(auth.currentUser, user, locale);
     if (!wasVerified) {
-      const progress = getUserProgress();
-      progress.totalXp += 50;
-      saveUserProgress(progress);
+      awardBonusXp(50);
     }
     persistUser(verifiedUser);
     closeAuthModal();
@@ -301,6 +306,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Firebase sign-out failed', error);
       }
     }
+    clearLocalUserProgress();
     persistUser(null);
   };
 

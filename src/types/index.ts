@@ -62,6 +62,7 @@ export interface LessonPage {
       task: string;
       hint: string;
       solution: string;
+      starterCode?: string;
     };
     xcodeLab?: XcodeLab;
   };
@@ -93,6 +94,7 @@ export interface Lesson {
       task: string;
       hint: string;
       solution: string;
+      starterCode?: string;
     };
     xcodeLab?: XcodeLab;
   };
@@ -215,5 +217,35 @@ export interface CertificateData {
   verificationCode: string;
   skills: string[];
 }
+
+export type ChallengeReviewSource = 'local-precheck' | 'cache' | 'gemini';
+
+export interface ChallengeReviewResult {
+  passed: boolean;
+  score: number;
+  verdict: string;
+  errors: string[];
+  hints: string[];
+  idiomaticTip: string;
+  source: ChallengeReviewSource;
+  modelUsed?: string;
+  remainingQuota?: number;
+  dailyLimit?: number;
+}
+
+export interface GeneratedPracticeTask {
+  id: string;
+  lessonId: string;
+  title: string;
+  task: string;
+  starterCode: string;
+  hint: string;
+  expectedCriteria: string[];
+  difficulty: 'easy' | 'medium' | 'hard';
+  locale: 'uk' | 'en';
+  expiresAt: number;
+  signature: string;
+}
+
 
 

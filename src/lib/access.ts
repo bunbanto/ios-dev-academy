@@ -329,8 +329,13 @@ export async function syncUserToRegistry(
           isVerified: Boolean(user.isVerified),
           joinedAt: record.joinedAt,
           lastActiveAt: record.lastActiveAt,
-          completedLessons: record.completedLessons,
-          totalXp: record.totalXp,
+          ...(progress
+            ? {
+                completedLessons: record.completedLessons,
+                completedChallenges: sanitizeStringArray(progress.completedChallenges),
+                totalXp: record.totalXp,
+              }
+            : {}),
         },
         { merge: true },
       );

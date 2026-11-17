@@ -36,12 +36,24 @@ export default function HomePage() {
   const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
 
   useEffect(() => {
-    setUserProgress(getUserProgress());
+    const syncProgress = () => setUserProgress(getUserProgress());
+    syncProgress();
+    window.addEventListener('storage', syncProgress);
+    window.addEventListener('swiftlab_progress_change', syncProgress);
+    window.addEventListener('swiftlab_auth_change', syncProgress);
+    return () => {
+      window.removeEventListener('storage', syncProgress);
+      window.removeEventListener('swiftlab_progress_change', syncProgress);
+      window.removeEventListener('swiftlab_auth_change', syncProgress);
+    };
   }, []);
 
   const totalLessons = lessons.length;
   const completedCount = userProgress?.completedLessons.length || 0;
   const progressPercent = Math.round((completedCount / totalLessons) * 100);
+  const lastLesson = userProgress?.lastLessonId
+    ? lessons.find((l) => l.id === userProgress.lastLessonId)
+    : undefined;
 
   return (
     <div className="space-y-20 pb-16">
@@ -220,10 +232,12 @@ export default function HomePage() {
           </div>
 
           <Link
-            href="/roadmap"
-            className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all whitespace-nowrap"
+            href={lastLesson ? `/lessons/${lastLesson.id}` : "/roadmap"}
+            className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all whitespace-nowrap max-w-xs truncate"
           >
-            {t("Продовжити навчання →", locale)}
+            {lastLesson
+              ? `${locale === "en" ? "Continue:" : "Продовжити:"} ${lastLesson.title} →`
+              : t("Продовжити навчання →", locale)}
           </Link>
         </div>
       </section>

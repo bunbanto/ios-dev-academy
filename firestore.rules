@@ -33,7 +33,15 @@ rules_version = '2';
 //   - githubUrl: string (optional, <= 500 chars)
 //   - goal: string (optional, <= 120 chars)
 //   - completedLessons: list<string> (optional, <= 500 items)
+//   - completedChallenges: list<string> (optional, <= 500 items)
+//   - quizScores: map (optional, <= 200 entries)
 //   - totalXp: number (optional, 0..1000000)
+//   - streakDays: int (optional, 0..10000)
+//   - lastActiveDate: string (optional, <= 32 chars)
+//   - bookmarks: list<string> (optional, <= 500 items)
+//   - currentModule: int (optional, 1..50)
+//   - lastLessonId: string (optional, <= 128 chars)
+//   - lastPageIndex: int (optional, 0..100)
 //   - unlockedLessons: list<string> (optional, <= 500 items)
 //   - lockedLessons: list<string> (optional, <= 500 items)
 //   - updatedAt: string | timestamp (optional)
@@ -98,7 +106,9 @@ service cloud.firestore {
           'id', 'uid', 'email', 'name', 'avatar', 'provider',
           'isVerified', 'verifiedAt', 'joinedAt', 'lastActiveAt',
           'role', 'bio', 'githubUrl', 'goal', 'completedLessons',
-          'totalXp', 'unlockedLessons', 'lockedLessons', 'updatedAt'
+          'completedChallenges', 'quizScores', 'totalXp', 'streakDays',
+          'lastActiveDate', 'bookmarks', 'currentModule', 'lastLessonId',
+          'lastPageIndex', 'unlockedLessons', 'lockedLessons', 'updatedAt'
         ])
         && data.role in ['admin', 'student']
         && (!('id' in data) || (data.id is string && data.id.size() <= 128))
@@ -115,7 +125,15 @@ service cloud.firestore {
         && (!('githubUrl' in data) || (data.githubUrl is string && data.githubUrl.size() <= 500))
         && (!('goal' in data) || (data.goal is string && data.goal.size() <= 120))
         && (!('completedLessons' in data) || (data.completedLessons is list && data.completedLessons.size() <= 500))
+        && (!('completedChallenges' in data) || (data.completedChallenges is list && data.completedChallenges.size() <= 500))
+        && (!('quizScores' in data) || (data.quizScores is map && data.quizScores.size() <= 200))
         && (!('totalXp' in data) || (data.totalXp is number && data.totalXp >= 0 && data.totalXp <= 1000000))
+        && (!('streakDays' in data) || (data.streakDays is int && data.streakDays >= 0 && data.streakDays <= 10000))
+        && (!('lastActiveDate' in data) || (data.lastActiveDate is string && data.lastActiveDate.size() <= 32))
+        && (!('bookmarks' in data) || (data.bookmarks is list && data.bookmarks.size() <= 500))
+        && (!('currentModule' in data) || (data.currentModule is int && data.currentModule >= 1 && data.currentModule <= 50))
+        && (!('lastLessonId' in data) || (data.lastLessonId is string && data.lastLessonId.size() <= 128))
+        && (!('lastPageIndex' in data) || (data.lastPageIndex is int && data.lastPageIndex >= 0 && data.lastPageIndex <= 100))
         && (!('unlockedLessons' in data) || (data.unlockedLessons is list && data.unlockedLessons.size() <= 500))
         && (!('lockedLessons' in data) || (data.lockedLessons is list && data.lockedLessons.size() <= 500))
         && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 100) || data.updatedAt is timestamp);

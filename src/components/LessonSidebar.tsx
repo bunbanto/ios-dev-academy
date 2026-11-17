@@ -336,7 +336,7 @@ export default function LessonSidebar({
                 const isPageDone = completedPageIndices.includes(pIdx);
                 return (
                   <button
-                    key={p.id || pIdx}
+                    key={`page-${pIdx}`}
                     onClick={() => {
                       if (onSelectPage) onSelectPage(pIdx);
                       if (isMobileOpen) onCloseMobile();
